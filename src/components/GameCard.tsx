@@ -50,39 +50,42 @@ const GameCard = ({
 
   return (
     <Link to={`/game/${id}`}>
-      <Card className="hover:shadow-card-hover transition-all duration-200 cursor-pointer bg-gradient-card border-border/50">
-        <CardContent className="p-6">
+      <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-card via-card/95 to-primary/5 border-2 border-primary/20 hover:border-primary/40 transform hover:scale-[1.02] animate-fade-in">
+        <CardContent className="p-4">
           <div className="space-y-4">
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-3">
               <div>
-                <h3 className="font-semibold text-lg text-foreground">{name}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {scheduledTime}
+                <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{name}</h3>
+                <p className="text-sm text-muted-foreground flex items-center gap-1 font-medium">
+                  <Clock className="h-4 w-4 text-primary" />
+                  ⏰ {scheduledTime}
                 </p>
               </div>
-              <Badge variant={getStatusColor(status)} className="text-xs">
+              <Badge variant={getStatusColor(status)} className={`text-xs font-bold px-3 py-1 ${
+                status === 'published' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
+                'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+              }`}>
                 {getStatusText(status)}
               </Badge>
             </div>
 
             {/* Results Display */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {/* Today's Result */}
               <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Today
+                <div className="text-xs font-bold text-primary mb-2 flex items-center justify-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  🟢 TODAY
                 </div>
-                <div className="bg-result-bg border-2 border-result-border rounded-lg py-3 px-2 min-h-[60px] flex items-center justify-center">
+                <div className="bg-gradient-to-br from-primary/10 to-primary-glow/20 border-3 border-primary/50 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center animate-glow-pulse">
                   {todayResult !== undefined ? (
-                    <span className="text-2xl font-bold text-result-text">
+                    <span className="text-3xl font-black text-primary animate-pulse-result drop-shadow-lg">
                       {todayResult}
                     </span>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      {status === "pending" ? "Pending" : "--"}
+                    <span className="text-sm font-bold text-primary/70 animate-pulse">
+                      {status === "pending" ? "⏳ PENDING" : "--"}
                     </span>
                   )}
                 </div>
@@ -90,13 +93,13 @@ const GameCard = ({
 
               {/* Yesterday's Result */}
               <div className="text-center">
-                <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Yesterday
+                <div className="text-xs font-bold text-accent mb-2 flex items-center justify-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  🔵 YESTERDAY
                 </div>
-                <div className="bg-muted/50 border border-border rounded-lg py-3 px-2 min-h-[60px] flex items-center justify-center">
+                <div className="bg-gradient-to-br from-accent/10 to-accent-glow/20 border-2 border-accent/40 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center">
                   {yesterdayResult !== undefined ? (
-                    <span className="text-xl font-semibold text-muted-foreground">
+                    <span className="text-2xl font-bold text-accent drop-shadow-md">
                       {yesterdayResult}
                     </span>
                   ) : (
@@ -107,9 +110,9 @@ const GameCard = ({
             </div>
 
             {/* Game Code */}
-            <div className="text-center">
-              <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
-                {shortCode}
+            <div className="text-center mt-3">
+              <span className="text-xs font-bold text-primary/80 font-mono bg-gradient-to-r from-primary/10 to-primary-glow/10 px-3 py-2 rounded-full border border-primary/30">
+                #{shortCode}
               </span>
             </div>
           </div>

@@ -23,6 +23,7 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
           hover: "hsl(var(--primary-hover))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -39,6 +40,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          glow: "hsl(var(--accent-glow))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -64,6 +66,7 @@ export default {
           text: "hsl(var(--result-text))",
           bg: "hsl(var(--result-bg))",
           border: "hsl(var(--result-border))",
+          glow: "var(--result-glow)",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -83,6 +86,7 @@ export default {
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
+        'gradient-accent': 'var(--gradient-accent)',
         'gradient-card': 'var(--gradient-card)',
       },
       boxShadow: {
@@ -106,8 +110,50 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)"
+          }
+        },
+        "scale-in": {
+          "0%": {
+            transform: "scale(0.95)",
+            opacity: "0"
+          },
+          "100%": {
+            transform: "scale(1)",
+            opacity: "1"
+          }
+        },
+        "pulse-result": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            textShadow: "0 0 10px currentColor"
+          },
+          "50%": {
+            transform: "scale(1.05)",
+            textShadow: "0 0 20px currentColor, 0 0 30px currentColor"
+          }
+        },
+        "glow-pulse": {
+          "0%, 100%": {
+            boxShadow: "0 0 15px hsl(var(--primary) / 0.3)"
+          },
+          "50%": {
+            boxShadow: "0 0 25px hsl(var(--primary) / 0.6), 0 0 35px hsl(var(--primary) / 0.4)"
+          }
+        },
       },
       animation: {
+        "fade-in": "fade-in 0.3s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        "pulse-result": "pulse-result 1.5s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },

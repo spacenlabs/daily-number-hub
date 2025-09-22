@@ -141,7 +141,7 @@ const Index = () => {
         className="relative bg-cover bg-center bg-no-repeat py-20 md:py-32"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        <div className="absolute inset-0 bg-primary/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary-glow/80 to-accent/70"></div>
         <div className="relative container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Results Management System
@@ -150,12 +150,12 @@ const Index = () => {
             View daily results for multiple scheduled games. Professional, reliable, and always up-to-date.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8">
+            <Button size="lg" variant="secondary" className="text-lg px-8 bg-white/20 hover:bg-white/30 text-white border border-white/30">
               View All Results
             </Button>
             <Link to="/admin">
-              <Button size="lg" variant="outline" className="text-lg px-8 text-white border-white hover:bg-white hover:text-primary">
-                Admin Login
+              <Button size="lg" className="text-lg px-8 bg-gradient-to-r from-accent to-accent-glow hover:from-accent-glow hover:to-accent text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-glow-pulse">
+                🔐 Admin Login
               </Button>
             </Link>
           </div>
@@ -163,18 +163,18 @@ const Index = () => {
       </section>
 
       {/* Games Grid */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-gradient-to-br from-background via-muted/20 to-primary/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Today's Games
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
+              Today's Live Results
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Click on any game card to view detailed results history and export data.
+              🎯 Click any game card to view complete history and export data
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 max-w-6xl mx-auto">
             {mockGames.map((game) => (
               <GameCard
                 key={game.id}
