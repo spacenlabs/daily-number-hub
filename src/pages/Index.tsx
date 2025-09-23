@@ -185,7 +185,6 @@ const Index = () => {
                     <label className="block text-sm font-medium text-foreground mb-2">Username</label>
                     <input 
                       type="text" 
-                      defaultValue="Admin"
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
                     />
                   </div>
@@ -193,7 +192,6 @@ const Index = () => {
                     <label className="block text-sm font-medium text-foreground mb-2">Password</label>
                     <input 
                       type="password" 
-                      defaultValue="Lottery@123"
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
                     />
                   </div>
