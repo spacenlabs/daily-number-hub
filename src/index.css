@@ -6,67 +6,76 @@
 
 @layer base {
   :root {
-    /* Core brand colors */
-    --background: 0 0% 100%;
-    --foreground: 215 25% 27%;
+    /* Dark Neon Theme */
+    --background: 210 30% 8%;
+    --foreground: 180 100% 90%;
 
     /* Card and surface colors */
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card: 210 30% 12%;
+    --card-foreground: 180 100% 90%;
 
     /* Interactive elements */
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover: 210 30% 12%;
+    --popover-foreground: 180 100% 90%;
 
-    /* Professional blue primary */
-    --primary: 280 100% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 280 100% 55%;
+    /* Neon primary colors */
+    --primary: 280 100% 70%;
+    --primary-foreground: 210 30% 8%;
+    --primary-hover: 280 100% 80%;
     --primary-glow: 290 80% 70%;
 
-    /* Clean secondary */
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 215 25% 27%;
+    /* Neon secondary */
+    --secondary: 210 30% 20%;
+    --secondary-foreground: 180 100% 90%;
 
     /* Muted backgrounds */
-    --muted: 220 14% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 30% 15%;
+    --muted-foreground: 180 50% 60%;
 
-    /* Accent colors */
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 55 90% 70%;
+    /* Neon accent colors */
+    --accent: 180 100% 70%;
+    --accent-foreground: 210 30% 8%;
+    --accent-glow: 180 80% 80%;
 
-    /* Status colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --pending: 43 96% 56%;
-    --pending-foreground: 215 25% 27%;
+    /* Neon status colors */
+    --success: 120 100% 50%;
+    --success-foreground: 210 30% 8%;
+    --warning: 60 100% 50%;
+    --warning-foreground: 210 30% 8%;
+    --pending: 40 100% 60%;
+    --pending-foreground: 210 30% 8%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 100% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders and inputs */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    /* Neon borders and inputs */
+    --border: 180 100% 30%;
+    --input: 210 30% 15%;
+    --ring: 180 100% 70%;
 
-    /* Numbers and data display */
-    --result-text: 280 100% 40%;
-    --result-bg: 0 0% 100%;
-    --result-border: 280 100% 60%;
-    --result-glow: 0 0 20px hsl(280 100% 60% / 0.6);
+    /* Neon numbers and data display */
+    --result-text: 280 100% 80%;
+    --result-bg: 210 30% 10%;
+    --result-border: 280 100% 70%;
+    --result-glow: 0 0 20px hsl(280 100% 70% / 0.8);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(280 100% 60%), hsl(290 80% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(45 100% 60%), hsl(55 90% 70%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(280 50% 98%));
+    /* Neon specific colors */
+    --neon-cyan: 180 100% 70%;
+    --neon-purple: 280 100% 70%;
+    --neon-pink: 320 100% 70%;
+    --neon-green: 120 100% 50%;
 
-    /* Shadows */
-    --shadow-card: 0 2px 8px -2px hsl(215 25% 27% / 0.1);
-    --shadow-card-hover: 0 4px 12px -2px hsl(215 25% 27% / 0.15);
+    /* Neon gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(280 100% 70%), hsl(180 100% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(180 100% 70%), hsl(280 100% 70%));
+    --gradient-card: linear-gradient(145deg, hsl(210 30% 12%), hsl(210 30% 8%));
+
+    /* Neon shadows */
+    --shadow-card: 0 0 20px hsl(180 100% 70% / 0.3);
+    --shadow-card-hover: 0 0 30px hsl(180 100% 70% / 0.5);
+    --shadow-neon: 0 0 20px hsl(180 100% 70% / 0.5), 0 0 40px hsl(180 100% 70% / 0.2);
+    --shadow-neon-button: 0 0 15px hsl(280 100% 70% / 0.6);
+    --shadow-neon-button-hover: 0 0 25px hsl(280 100% 70% / 0.8), 0 0 40px hsl(180 100% 70% / 0.6);
 
     --radius: 0.75rem;
 

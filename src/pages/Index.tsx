@@ -136,34 +136,9 @@ const mockGames = [
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section 
-        className="relative bg-cover bg-center bg-no-repeat py-20 md:py-32"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary-glow/80 to-accent/70"></div>
-        <div className="relative container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Results Management System
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto">
-            View daily results for multiple scheduled games. Professional, reliable, and always up-to-date.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 bg-white/20 hover:bg-white/30 text-white border border-white/30">
-              View All Results
-            </Button>
-            <Link to="/admin">
-              <Button size="lg" className="text-lg px-8 bg-gradient-to-r from-accent to-accent-glow hover:from-accent-glow hover:to-accent text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 animate-glow-pulse">
-                🔐 Admin Login
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Games Grid */}
-      <section className="py-16 bg-gradient-to-br from-background via-muted/20 to-primary/5">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
@@ -191,33 +166,52 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-card border-t py-12">
+      {/* Admin Login Section */}
+      <section className="py-12 bg-card/50 border-t border-neon-cyan/20">
         <div className="container mx-auto px-4">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Results System</h3>
-              <p className="text-sm text-muted-foreground">
-                A professional platform for managing and displaying scheduled game results.
-              </p>
+          <div className="max-w-md mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-neon-cyan mb-2">Admin Access</h2>
+              <p className="text-muted-foreground">Login to manage games and results</p>
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Legal</h3>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>This platform displays results only.</p>
-                <p>No betting or wagering functions.</p>
-                <p>All results are for informational purposes.</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Contact</h3>
-              <p className="text-sm text-muted-foreground">
-                For technical support or inquiries, please contact your system administrator.
-              </p>
+            <div className="bg-card/80 backdrop-blur border border-neon-cyan/30 rounded-lg p-6 shadow-neon">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                // Simple redirect to admin dashboard for demo
+                window.location.href = '/admin/dashboard';
+              }}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Username</label>
+                    <input 
+                      type="text" 
+                      defaultValue="Admin"
+                      className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+                    <input 
+                      type="password" 
+                      defaultValue="Lottery@123"
+                      className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-purple hover:to-neon-cyan text-background font-bold py-2 px-4 rounded-md shadow-neon-button hover:shadow-neon-button-hover transition-all duration-300 animate-pulse-neon">
+                    🔐 Access Admin Panel
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            © 2025 Results Management System. All rights reserved.
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-background/80 border-t border-neon-cyan/20 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-sm text-muted-foreground">
+            © 2025 Lottery Results System. All rights reserved. • Results for informational purposes only.
           </div>
         </div>
       </footer>
