@@ -72,6 +72,23 @@ const GameCard = ({
 
             {/* Results Display */}
             <div className="grid grid-cols-2 gap-3">
+              {/* Yesterday's Result */}
+              <div className="text-center">
+                <div className="text-xs font-bold text-accent mb-2 flex items-center justify-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  🔵 YESTERDAY
+                </div>
+                <div className="bg-gradient-to-br from-accent/10 to-accent-glow/20 border-2 border-accent/40 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center">
+                  {yesterdayResult !== undefined ? (
+                    <span className="text-2xl font-bold text-accent drop-shadow-md">
+                      {yesterdayResult}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">--</span>
+                  )}
+                </div>
+              </div>
+
               {/* Today's Result */}
               <div className="text-center">
                 <div className="text-xs font-bold text-primary mb-2 flex items-center justify-center gap-1">
@@ -87,23 +104,6 @@ const GameCard = ({
                     <span className="text-sm font-bold text-primary/70 animate-pulse">
                       {status === "pending" ? "⏳ PENDING" : "--"}
                     </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Yesterday's Result */}
-              <div className="text-center">
-                <div className="text-xs font-bold text-accent mb-2 flex items-center justify-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  🔵 YESTERDAY
-                </div>
-                <div className="bg-gradient-to-br from-accent/10 to-accent-glow/20 border-2 border-accent/40 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center">
-                  {yesterdayResult !== undefined ? (
-                    <span className="text-2xl font-bold text-accent drop-shadow-md">
-                      {yesterdayResult}
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">--</span>
                   )}
                 </div>
               </div>
