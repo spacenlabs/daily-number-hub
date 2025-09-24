@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useGames } from "@/hooks/useGames";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Home, 
   Settings, 
@@ -20,153 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Games data - synced with public site
-const initialGames = [
-  {
-    id: "1",
-    name: "Darbhanga King",
-    shortCode: "DK",
-    scheduledTime: "11:00",
-    todayResult: 73,
-    yesterdayResult: 45,
-    status: "published" as const,
-    enabled: true,
-  },
-  {
-    id: "2", 
-    name: "Samastipur King",
-    shortCode: "SK",
-    scheduledTime: "14:00",
-    todayResult: 28,
-    yesterdayResult: 92,
-    status: "published" as const,
-    enabled: true,
-  },
-  {
-    id: "3",
-    name: "Madhubani King", 
-    shortCode: "MK",
-    scheduledTime: "15:00",
-    todayResult: 56,
-    yesterdayResult: 17,
-    status: "published" as const,
-    enabled: true,
-  },
-  {
-    id: "4",
-    name: "Sitamarhi King",
-    shortCode: "SMK", 
-    scheduledTime: "16:00",
-    todayResult: undefined,
-    yesterdayResult: 84,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "5",
-    name: "Shri Ganesh",
-    shortCode: "SG", 
-    scheduledTime: "16:30",
-    todayResult: undefined,
-    yesterdayResult: 63,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "6",
-    name: "Chakiya King",
-    shortCode: "CK", 
-    scheduledTime: "17:00",
-    todayResult: undefined,
-    yesterdayResult: 39,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "7",
-    name: "Faridabad",
-    shortCode: "FB", 
-    scheduledTime: "18:00",
-    todayResult: undefined,
-    yesterdayResult: 75,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "8",
-    name: "Muzaffarpur King",
-    shortCode: "MZK", 
-    scheduledTime: "19:00",
-    todayResult: undefined,
-    yesterdayResult: 21,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "9",
-    name: "Ghaziabad",
-    shortCode: "GZB", 
-    scheduledTime: "20:30",
-    todayResult: undefined,
-    yesterdayResult: 68,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "10",
-    name: "Ara King",
-    shortCode: "AK", 
-    scheduledTime: "21:30",
-    todayResult: undefined,
-    yesterdayResult: 94,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "11",
-    name: "Chhapra King",
-    shortCode: "CHK", 
-    scheduledTime: "21:45",
-    todayResult: undefined,
-    yesterdayResult: 12,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "12",
-    name: "Patna King",
-    shortCode: "PK", 
-    scheduledTime: "22:00",
-    todayResult: undefined,
-    yesterdayResult: 87,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "13",
-    name: "Gali",
-    shortCode: "GL", 
-    scheduledTime: "23:30",
-    todayResult: undefined,
-    yesterdayResult: 35,
-    status: "pending" as const,
-    enabled: true,
-  },
-  {
-    id: "14",
-    name: "Disawar",
-    shortCode: "DS", 
-    scheduledTime: "05:00",
-    todayResult: 49,
-    yesterdayResult: 76,
-    status: "published" as const,
-    enabled: true,
-  },
-];
-
 const AdminDashboard = () => {
+  const { games, loading, updateGameResult } = useGames();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
-  const [games, setGames] = useState(initialGames);
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [newResult, setNewResult] = useState("");
@@ -179,30 +38,35 @@ const AdminDashboard = () => {
     totalPlays: 1247,
   };
 
-  const handleAddResult = () => {
+  const handleAddResult = async () => {
     if (!selectedGameId || !newResult) return;
     
     const resultNumber = parseInt(newResult);
     if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
-      alert("Please enter a valid result (0-99)");
+      toast({
+        title: "Invalid Result",
+        description: "Please enter a valid result (0-99)",
+        variant: "destructive",
+      });
       return;
     }
 
-    setGames(prevGames => 
-      prevGames.map(game => 
-        game.id === selectedGameId 
-          ? { 
-              ...game, 
-              todayResult: resultNumber, 
-              status: "published" as const 
-            }
-          : game
-      )
-    );
-    
-    setIsAddResultOpen(false);
-    setSelectedGameId("");
-    setNewResult("");
+    try {
+      await updateGameResult(selectedGameId, resultNumber);
+      toast({
+        title: "Result Added",
+        description: "Game result has been successfully published!",
+      });
+      setIsAddResultOpen(false);
+      setSelectedGameId("");
+      setNewResult("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add result",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -317,42 +181,48 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid gap-4">
-              {games.map((game) => (
-                <Card key={game.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h3 className="font-semibold">{game.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Code: {game.shortCode} • Scheduled: {game.scheduledTime}
-                          </p>
-                        </div>
-                        <Badge variant={game.enabled ? "default" : "secondary"}>
-                          {game.enabled ? "Active" : "Disabled"}
-                        </Badge>
-                        <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                          {game.status === "published" ? "Published" : "Pending"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right mr-4">
-                          <div className="text-sm text-muted-foreground">Today's Result</div>
-                          <div className="text-xl font-bold">
-                            {game.todayResult !== undefined ? game.todayResult : "--"}
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="text-lg text-muted-foreground">Loading games...</div>
+                </div>
+              ) : (
+                games.map((game) => (
+                  <Card key={game.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <h3 className="font-semibold">{game.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Code: {game.shortCode} • Scheduled: {game.scheduledTime}
+                            </p>
                           </div>
+                          <Badge variant={game.enabled ? "default" : "secondary"}>
+                            {game.enabled ? "Active" : "Disabled"}
+                          </Badge>
+                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
+                            {game.status === "published" ? "Published" : "Pending"}
+                          </Badge>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right mr-4">
+                            <div className="text-sm text-muted-foreground">Today's Result</div>
+                            <div className="text-xl font-bold">
+                              {game.todayResult !== undefined ? game.todayResult : "--"}
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 

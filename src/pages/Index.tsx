@@ -1,139 +1,27 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useGames } from "@/hooks/useGames";
 import heroImage from "@/assets/hero-bg.jpg";
 
-// Mock data for games
-const mockGames = [
-  {
-    id: "1",
-    name: "Darbhanga King",
-    shortCode: "DK",
-    scheduledTime: "11:00",
-    todayResult: 73,
-    yesterdayResult: 45,
-    status: "published" as const,
-  },
-  {
-    id: "2", 
-    name: "Samastipur King",
-    shortCode: "SK",
-    scheduledTime: "14:00",
-    todayResult: 28,
-    yesterdayResult: 92,
-    status: "published" as const,
-  },
-  {
-    id: "3",
-    name: "Madhubani King", 
-    shortCode: "MK",
-    scheduledTime: "15:00",
-    todayResult: 56,
-    yesterdayResult: 17,
-    status: "published" as const,
-  },
-  {
-    id: "4",
-    name: "Sitamarhi King",
-    shortCode: "SMK", 
-    scheduledTime: "16:00",
-    todayResult: undefined,
-    yesterdayResult: 84,
-    status: "pending" as const,
-  },
-  {
-    id: "5",
-    name: "Shri Ganesh",
-    shortCode: "SG", 
-    scheduledTime: "16:30",
-    todayResult: undefined,
-    yesterdayResult: 63,
-    status: "pending" as const,
-  },
-  {
-    id: "6",
-    name: "Chakiya King",
-    shortCode: "CK", 
-    scheduledTime: "17:00",
-    todayResult: undefined,
-    yesterdayResult: 39,
-    status: "pending" as const,
-  },
-  {
-    id: "7",
-    name: "Faridabad",
-    shortCode: "FB", 
-    scheduledTime: "18:00",
-    todayResult: undefined,
-    yesterdayResult: 75,
-    status: "pending" as const,
-  },
-  {
-    id: "8",
-    name: "Muzaffarpur King",
-    shortCode: "MZK", 
-    scheduledTime: "19:00",
-    todayResult: undefined,
-    yesterdayResult: 21,
-    status: "pending" as const,
-  },
-  {
-    id: "9",
-    name: "Ghaziabad",
-    shortCode: "GZB", 
-    scheduledTime: "20:30",
-    todayResult: undefined,
-    yesterdayResult: 68,
-    status: "pending" as const,
-  },
-  {
-    id: "10",
-    name: "Ara King",
-    shortCode: "AK", 
-    scheduledTime: "21:30",
-    todayResult: undefined,
-    yesterdayResult: 94,
-    status: "pending" as const,
-  },
-  {
-    id: "11",
-    name: "Chhapra King",
-    shortCode: "CHK", 
-    scheduledTime: "21:45",
-    todayResult: undefined,
-    yesterdayResult: 12,
-    status: "pending" as const,
-  },
-  {
-    id: "12",
-    name: "Patna King",
-    shortCode: "PK", 
-    scheduledTime: "22:00",
-    todayResult: undefined,
-    yesterdayResult: 87,
-    status: "pending" as const,
-  },
-  {
-    id: "13",
-    name: "Gali",
-    shortCode: "GL", 
-    scheduledTime: "23:30",
-    todayResult: undefined,
-    yesterdayResult: 35,
-    status: "pending" as const,
-  },
-  {
-    id: "14",
-    name: "Disawar",
-    shortCode: "DS", 
-    scheduledTime: "05:00",
-    todayResult: 49,
-    yesterdayResult: 76,
-    status: "published" as const,
-  },
-];
-
 const Index = () => {
+  const { games, loading } = useGames();
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    
+    if (username === "Admin" && password === "Lottery@123") {
+      navigate('/admin/dashboard');
+    } else {
+      setLoginError("Invalid credentials. Please try again.");
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
 
@@ -150,18 +38,24 @@ const Index = () => {
           </div>
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 max-w-6xl mx-auto">
-            {mockGames.map((game) => (
-              <GameCard
-                key={game.id}
-                id={game.id}
-                name={game.name}
-                shortCode={game.shortCode}
-                scheduledTime={game.scheduledTime}
-                todayResult={game.todayResult}
-                yesterdayResult={game.yesterdayResult}
-                status={game.status}
-              />
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center py-8">
+                <div className="text-lg text-muted-foreground">Loading games...</div>
+              </div>
+            ) : (
+              games.map((game) => (
+                <GameCard
+                  key={game.id}
+                  id={game.id}
+                  name={game.name}
+                  shortCode={game.shortCode}
+                  scheduledTime={game.scheduledTime}
+                  todayResult={game.todayResult}
+                  yesterdayResult={game.yesterdayResult}
+                  status={game.status}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -175,16 +69,20 @@ const Index = () => {
               <p className="text-muted-foreground">Login to manage games and results</p>
             </div>
             <div className="bg-card/80 backdrop-blur border border-neon-cyan/30 rounded-lg p-6 shadow-neon">
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                // Simple redirect to admin dashboard for demo
-                window.location.href = '/admin/dashboard';
-              }}>
+              <form onSubmit={handleLogin}>
                 <div className="space-y-4">
+                  {loginError && (
+                    <div className="text-red-500 text-sm text-center py-2 bg-red-500/10 rounded-md border border-red-500/30">
+                      {loginError}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Username</label>
                     <input 
                       type="text" 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
                     />
                   </div>
@@ -192,6 +90,9 @@ const Index = () => {
                     <label className="block text-sm font-medium text-foreground mb-2">Password</label>
                     <input 
                       type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
                     />
                   </div>

@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      games: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          scheduled_time: string
+          short_code: string
+          status: string
+          today_result: number | null
+          updated_at: string
+          yesterday_result: number | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          scheduled_time: string
+          short_code: string
+          status?: string
+          today_result?: number | null
+          updated_at?: string
+          yesterday_result?: number | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          scheduled_time?: string
+          short_code?: string
+          status?: string
+          today_result?: number | null
+          updated_at?: string
+          yesterday_result?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
