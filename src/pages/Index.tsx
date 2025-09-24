@@ -1,27 +1,39 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
-import { useNavigate } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-bg.jpg";
 
 const Index = () => {
   const { games, loading } = useGames();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-
-  const handleLogin = (e: React.FormEvent) => {
+  
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoginError("");
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
     
-    if (username === "Admin" && password === "Lottery@123") {
+    if (username === 'Admin' && password === 'Lottery@123') {
       navigate('/admin/dashboard');
     } else {
-      setLoginError("Invalid credentials. Please try again.");
+      setLoginError('Invalid credentials. Use Username: Admin, Password: Lottery@123');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading games...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
 
@@ -38,24 +50,18 @@ const Index = () => {
           </div>
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 max-w-6xl mx-auto">
-            {loading ? (
-              <div className="col-span-full text-center py-8">
-                <div className="text-lg text-muted-foreground">Loading games...</div>
-              </div>
-            ) : (
-              games.map((game) => (
-                <GameCard
-                  key={game.id}
-                  id={game.id}
-                  name={game.name}
-                  shortCode={game.shortCode}
-                  scheduledTime={game.scheduledTime}
-                  todayResult={game.todayResult}
-                  yesterdayResult={game.yesterdayResult}
-                  status={game.status}
-                />
-              ))
-            )}
+            {games.map((game) => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                name={game.name}
+                shortCode={game.short_code}
+                scheduledTime={game.scheduled_time}
+                todayResult={game.today_result || undefined}
+                yesterdayResult={game.yesterday_result || undefined}
+                status={game.status}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -70,30 +76,30 @@ const Index = () => {
             </div>
             <div className="bg-card/80 backdrop-blur border border-neon-cyan/30 rounded-lg p-6 shadow-neon">
               <form onSubmit={handleLogin}>
+                {loginError && (
+                  <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <p className="text-sm text-destructive">{loginError}</p>
+                  </div>
+                )}
                 <div className="space-y-4">
-                  {loginError && (
-                    <div className="text-red-500 text-sm text-center py-2 bg-red-500/10 rounded-md border border-red-500/30">
-                      {loginError}
-                    </div>
-                  )}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Username</label>
                     <input 
+                      name="username"
                       type="text" 
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
                       required
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
+                      placeholder="Enter username"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Password</label>
                     <input 
+                      name="password"
                       type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
                       required
                       className="w-full px-3 py-2 bg-background/50 border border-neon-cyan/30 rounded-md text-foreground focus:ring-2 focus:ring-neon-cyan focus:border-transparent transition-all"
+                      placeholder="Enter password"
                     />
                   </div>
                   <Button type="submit" className="w-full bg-gradient-to-r from-neon-cyan to-neon-purple hover:from-neon-purple hover:to-neon-cyan text-background font-bold py-2 px-4 rounded-md shadow-neon-button hover:shadow-neon-button-hover transition-all duration-300 animate-pulse-neon">

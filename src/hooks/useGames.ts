@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Game {
   id: string;
   name: string;
-  shortCode: string;
-  scheduledTime: string;
-  todayResult?: number;
-  yesterdayResult?: number;
+  short_code: string;
+  scheduled_time: string;
+  today_result?: number | null;
+  yesterday_result?: number | null;
   status: 'published' | 'pending' | 'manual';
   enabled: boolean;
 }
@@ -24,21 +24,13 @@ export const useGames = () => {
         .from('games')
         .select('*')
         .order('scheduled_time');
-      
+
       if (error) throw error;
-      
-      const formattedGames: Game[] = data.map(game => ({
-        id: game.id,
-        name: game.name,
-        shortCode: game.short_code,
-        scheduledTime: game.scheduled_time,
-        todayResult: game.today_result,
-        yesterdayResult: game.yesterday_result,
-        status: game.status as 'published' | 'pending' | 'manual',
-        enabled: game.enabled,
-      }));
-      
-      setGames(formattedGames);
+
+      setGames((data || []).map(game => ({
+        ...game,
+        status: game.status as 'published' | 'pending' | 'manual'
+      })));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
     } finally {
@@ -52,16 +44,28 @@ export const useGames = () => {
         .from('games')
         .update({ 
           today_result: result, 
-          status: 'published' 
+          status: 'published',
+          updated_at: new Date().toISOString()
         })
         .eq('id', gameId);
-      
+
       if (error) throw error;
-      
-      // Refresh games after update
-      await fetchGames();
+
+      // Update local state
+      setGames(prevGames => 
+        prevGames.map(game => 
+          game.id === gameId 
+            ? { ...game, today_result: result, status: 'published' as const }
+            : game
+        )
+      );
+
+      return { success: true };
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Failed to update game result');
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to update result' 
+      };
     }
   };
 
@@ -79,7 +83,7 @@ export const useGames = () => {
           table: 'games'
         },
         () => {
-          fetchGames();
+          fetchGames(); // Refetch when any change happens
         }
       )
       .subscribe();

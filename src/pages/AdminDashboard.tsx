@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { 
   Home, 
   Settings, 
@@ -23,9 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AdminDashboard = () => {
-  const { games, loading, updateGameResult } = useGames();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const { games, loading, updateGameResult } = useGames();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [newResult, setNewResult] = useState("");
@@ -33,7 +32,7 @@ const AdminDashboard = () => {
   // Calculate stats dynamically
   const mockStats = {
     totalGames: games.length,
-    todayResults: games.filter(game => game.todayResult !== undefined).length,
+    todayResults: games.filter(game => game.today_result !== undefined && game.today_result !== null).length,
     pendingResults: games.filter(game => game.status === "pending").length,
     totalPlays: 1247,
   };
@@ -43,31 +42,32 @@ const AdminDashboard = () => {
     
     const resultNumber = parseInt(newResult);
     if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
-      toast({
-        title: "Invalid Result",
-        description: "Please enter a valid result (0-99)",
-        variant: "destructive",
-      });
+      toast.error("Please enter a valid result (0-99)");
       return;
     }
 
-    try {
-      await updateGameResult(selectedGameId, resultNumber);
-      toast({
-        title: "Result Added",
-        description: "Game result has been successfully published!",
-      });
+    const result = await updateGameResult(selectedGameId, resultNumber);
+    
+    if (result.success) {
+      toast.success("Result added successfully!");
       setIsAddResultOpen(false);
       setSelectedGameId("");
       setNewResult("");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add result",
-        variant: "destructive",
-      });
+    } else {
+      toast.error(result.error || "Failed to add result");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -181,48 +181,42 @@ const AdminDashboard = () => {
             </div>
 
             <div className="grid gap-4">
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="text-lg text-muted-foreground">Loading games...</div>
-                </div>
-              ) : (
-                games.map((game) => (
-                  <Card key={game.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <h3 className="font-semibold">{game.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Code: {game.shortCode} • Scheduled: {game.scheduledTime}
-                            </p>
-                          </div>
-                          <Badge variant={game.enabled ? "default" : "secondary"}>
-                            {game.enabled ? "Active" : "Disabled"}
-                          </Badge>
-                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                            {game.status === "published" ? "Published" : "Pending"}
-                          </Badge>
+              {games.map((game) => (
+                <Card key={game.id}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <h3 className="font-semibold">{game.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Code: {game.short_code} • Scheduled: {game.scheduled_time}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right mr-4">
-                            <div className="text-sm text-muted-foreground">Today's Result</div>
-                            <div className="text-xl font-bold">
-                              {game.todayResult !== undefined ? game.todayResult : "--"}
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Badge variant={game.enabled ? "default" : "secondary"}>
+                          {game.enabled ? "Active" : "Disabled"}
+                        </Badge>
+                        <Badge variant={game.status === "published" ? "default" : "secondary"}>
+                          {game.status === "published" ? "Published" : "Pending"}
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                      <div className="flex items-center gap-2">
+                        <div className="text-right mr-4">
+                          <div className="text-sm text-muted-foreground">Today's Result</div>
+                          <div className="text-xl font-bold">
+                            {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
 
@@ -250,7 +244,7 @@ const AdminDashboard = () => {
                         <SelectContent>
                           {games.filter(game => game.status === "pending").map((game) => (
                             <SelectItem key={game.id} value={game.id}>
-                              {game.name} ({game.shortCode}) - {game.scheduledTime}
+                              {game.name} ({game.short_code}) - {game.scheduled_time}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -295,7 +289,7 @@ const AdminDashboard = () => {
                           <h4 className="font-medium">{game.name}</h4>
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {game.scheduledTime}
+                            {game.scheduled_time}
                           </p>
                         </div>
                       </div>
@@ -305,7 +299,7 @@ const AdminDashboard = () => {
                         </Badge>
                         <div className="text-right">
                           <div className="text-lg font-bold">
-                            {game.todayResult !== undefined ? game.todayResult : "--"}
+                            {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
                           </div>
                         </div>
                       </div>
