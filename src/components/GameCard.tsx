@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Clock, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatTo12Hour } from "@/lib/time-utils";
 
 interface GameCardProps {
   id: string;
@@ -59,7 +60,7 @@ const GameCard = ({
                 <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{name}</h3>
                 <p className="text-sm text-muted-foreground flex items-center gap-1 font-medium">
                   <Clock className="h-4 w-4 text-primary" />
-                  ⏰ {scheduledTime}
+                  ⏰ {formatTo12Hour(scheduledTime)}
                 </p>
               </div>
               <Badge variant={getStatusColor(status)} className={`text-xs font-bold px-3 py-1 ${

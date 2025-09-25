@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
 import { toast } from "sonner";
+import { formatTo12Hour } from "@/lib/time-utils";
 import { 
   Home, 
   Settings, 
@@ -24,10 +25,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { games, loading, updateGameResult } = useGames();
+  const { games, loading, updateGameResult, editGameResult } = useGames();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
+  const [isEditResultOpen, setIsEditResultOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
+  const [editingGameId, setEditingGameId] = useState("");
   const [newResult, setNewResult] = useState("");
+  const [editResult, setEditResult] = useState("");
 
   // Calculate stats dynamically
   const mockStats = {
@@ -56,6 +60,33 @@ const AdminDashboard = () => {
     } else {
       toast.error(result.error || "Failed to add result");
     }
+  };
+
+  const handleEditResult = async () => {
+    if (!editingGameId || !editResult) return;
+    
+    const resultNumber = parseInt(editResult);
+    if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
+      toast.error("Please enter a valid result (0-99)");
+      return;
+    }
+
+    const result = await editGameResult(editingGameId, resultNumber);
+    
+    if (result.success) {
+      toast.success("Result updated successfully!");
+      setIsEditResultOpen(false);
+      setEditingGameId("");
+      setEditResult("");
+    } else {
+      toast.error(result.error || "Failed to update result");
+    }
+  };
+
+  const openEditDialog = (gameId: string, currentResult: number | null) => {
+    setEditingGameId(gameId);
+    setEditResult(currentResult?.toString() || "");
+    setIsEditResultOpen(true);
   };
 
   if (loading) {
@@ -189,7 +220,7 @@ const AdminDashboard = () => {
                         <div>
                           <h3 className="font-semibold">{game.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            Code: {game.short_code} • Scheduled: {game.scheduled_time}
+                            Code: {game.short_code} • Scheduled: {formatTo12Hour(game.scheduled_time)}
                           </p>
                         </div>
                         <Badge variant={game.enabled ? "default" : "secondary"}>
@@ -206,7 +237,12 @@ const AdminDashboard = () => {
                             {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openEditDialog(game.id, game.today_result)}
+                          disabled={game.today_result === null || game.today_result === undefined}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="outline" size="sm">
@@ -223,56 +259,94 @@ const AdminDashboard = () => {
           <TabsContent value="results" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Manage Results</h2>
-              <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Result
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Result</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="game-select">Select Game</Label>
-                      <Select value={selectedGameId} onValueChange={setSelectedGameId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a game" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {games.filter(game => game.status === "pending").map((game) => (
-                            <SelectItem key={game.id} value={game.id}>
-                              {game.name} ({game.short_code}) - {game.scheduled_time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+              <div className="flex gap-2">
+                <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add Result
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Result</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="game-select">Select Game</Label>
+                        <Select value={selectedGameId} onValueChange={setSelectedGameId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a game" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {games.filter(game => game.status === "pending").map((game) => (
+                              <SelectItem key={game.id} value={game.id}>
+                                {game.name} ({game.short_code}) - {formatTo12Hour(game.scheduled_time)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="result-input">Result (0-99)</Label>
+                        <Input
+                          id="result-input"
+                          type="number"
+                          min="0"
+                          max="99"
+                          value={newResult}
+                          onChange={(e) => setNewResult(e.target.value)}
+                          placeholder="Enter result number"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsAddResultOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleAddResult}>
+                          Add Result
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="result-input">Result (0-99)</Label>
-                      <Input
-                        id="result-input"
-                        type="number"
-                        min="0"
-                        max="99"
-                        value={newResult}
-                        onChange={(e) => setNewResult(e.target.value)}
-                        placeholder="Enter result number"
-                      />
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isEditResultOpen} onOpenChange={setIsEditResultOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Result</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Game</Label>
+                        <div className="text-sm text-muted-foreground">
+                          {games.find(g => g.id === editingGameId)?.name || "Unknown Game"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-result-input">Result (0-99)</Label>
+                        <Input
+                          id="edit-result-input"
+                          type="number"
+                          min="0"
+                          max="99"
+                          value={editResult}
+                          onChange={(e) => setEditResult(e.target.value)}
+                          placeholder="Enter result number"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsEditResultOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleEditResult}>
+                          Update Result
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setIsAddResultOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleAddResult}>
-                        Add Result
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             
             <Card>
@@ -289,20 +363,30 @@ const AdminDashboard = () => {
                           <h4 className="font-medium">{game.name}</h4>
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {game.scheduled_time}
+                            {formatTo12Hour(game.scheduled_time)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                          {game.status === "published" ? "Published" : "Pending"}
-                        </Badge>
-                        <div className="text-right">
-                          <div className="text-lg font-bold">
-                            {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                        <div className="flex items-center gap-3">
+                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
+                            {game.status === "published" ? "Published" : "Pending"}
+                          </Badge>
+                          <div className="text-right flex items-center gap-2">
+                            <div className="text-lg font-bold">
+                              {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                            </div>
+                            {game.today_result !== undefined && game.today_result !== null && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openEditDialog(game.id, game.today_result)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </div>
-                      </div>
                     </div>
                   ))}
                 </div>
