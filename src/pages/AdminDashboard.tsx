@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { formatTo12Hour } from "@/lib/time-utils";
 import { 
@@ -26,12 +28,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const { games, loading, updateGameResult, editGameResult } = useGames();
+  const { user, isAdmin, loading: authLoading, signOut, profile } = useAuth();
+  const navigate = useNavigate();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [isEditResultOpen, setIsEditResultOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [editingGameId, setEditingGameId] = useState("");
   const [newResult, setNewResult] = useState("");
   const [editResult, setEditResult] = useState("");
+
+  // Check authentication and admin privileges
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        toast.error("Please log in to access the admin dashboard");
+        navigate('/admin');
+        return;
+      }
+      
+      if (!isAdmin) {
+        toast.error("You don't have admin privileges to access this dashboard");
+        navigate('/');
+        return;
+      }
+    }
+  }, [user, isAdmin, authLoading, navigate]);
+
+  // Show loading while checking authentication
+  if (authLoading || !user || !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Calculate stats dynamically
   const mockStats = {
@@ -111,13 +144,25 @@ const AdminDashboard = () => {
               <p className="text-muted-foreground">Manage games and results</p>
             </div>
             <div className="flex items-center gap-2">
+              <div className="text-sm text-muted-foreground">
+                Welcome, {profile?.email}
+              </div>
               <Link to="/">
                 <Button variant="outline" size="sm" className="gap-2">
                   <Home className="h-4 w-4" />
                   Public Site
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={async () => {
+                  await signOut();
+                  toast.success("Logged out successfully");
+                  navigate('/');
+                }}
+              >
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
