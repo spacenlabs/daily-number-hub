@@ -27,15 +27,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { games, loading, updateGameResult, editGameResult } = useGames();
+  const { games, loading, updateGameResult, editGameResult, editYesterdayResult } = useGames();
   const { user, isAdmin, loading: authLoading, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [isEditResultOpen, setIsEditResultOpen] = useState(false);
+  const [isEditYesterdayResultOpen, setIsEditYesterdayResultOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [editingGameId, setEditingGameId] = useState("");
+  const [editingYesterdayGameId, setEditingYesterdayGameId] = useState("");
   const [newResult, setNewResult] = useState("");
   const [editResult, setEditResult] = useState("");
+  const [editYesterdayResult, setEditYesterdayResult] = useState("");
 
   // Check authentication and admin privileges
   useEffect(() => {
@@ -120,6 +123,33 @@ const AdminDashboard = () => {
     setEditingGameId(gameId);
     setEditResult(currentResult?.toString() || "");
     setIsEditResultOpen(true);
+  };
+
+  const handleEditYesterdayResult = async () => {
+    if (!editingYesterdayGameId || !editYesterdayResult) return;
+    
+    const resultNumber = parseInt(editYesterdayResult);
+    if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
+      toast.error("Please enter a valid result (0-99)");
+      return;
+    }
+
+    const result = await editYesterdayResult(editingYesterdayGameId, resultNumber);
+    
+    if (result.success) {
+      toast.success("Yesterday result updated successfully!");
+      setIsEditYesterdayResultOpen(false);
+      setEditingYesterdayGameId("");
+      setEditYesterdayResult("");
+    } else {
+      toast.error(result.error || "Failed to update yesterday result");
+    }
+  };
+
+  const openEditYesterdayDialog = (gameId: string, currentResult: number | null) => {
+    setEditingYesterdayGameId(gameId);
+    setEditYesterdayResult(currentResult?.toString() || "");
+    setIsEditYesterdayResultOpen(true);
   };
 
   if (loading) {
@@ -275,21 +305,36 @@ const AdminDashboard = () => {
                           {game.status === "published" ? "Published" : "Pending"}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right mr-4">
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-sm text-muted-foreground">Yesterday's Result</div>
+                          <div className="text-lg font-bold">
+                            {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
+                            className="mt-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="text-right">
                           <div className="text-sm text-muted-foreground">Today's Result</div>
                           <div className="text-xl font-bold">
                             {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
                           </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openEditDialog(game.id, game.today_result)}
+                            disabled={game.today_result === null || game.today_result === undefined}
+                            className="mt-1"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => openEditDialog(game.id, game.today_result)}
-                          disabled={game.today_result === null || game.today_result === undefined}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
                         <Button variant="outline" size="sm">
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -391,6 +436,42 @@ const AdminDashboard = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                <Dialog open={isEditYesterdayResultOpen} onOpenChange={setIsEditYesterdayResultOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Yesterday Result</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Game</Label>
+                        <div className="text-sm text-muted-foreground">
+                          {games.find(g => g.id === editingYesterdayGameId)?.name || "Unknown Game"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-yesterday-result-input">Yesterday Result (0-99)</Label>
+                        <Input
+                          id="edit-yesterday-result-input"
+                          type="number"
+                          min="0"
+                          max="99"
+                          value={editYesterdayResult}
+                          onChange={(e) => setEditYesterdayResult(e.target.value)}
+                          placeholder="Enter yesterday result number"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsEditYesterdayResultOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleEditYesterdayResult}>
+                          Update Yesterday Result
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             
@@ -412,26 +493,43 @@ const AdminDashboard = () => {
                           </p>
                         </div>
                       </div>
-                        <div className="flex items-center gap-3">
-                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                            {game.status === "published" ? "Published" : "Pending"}
-                          </Badge>
-                          <div className="text-right flex items-center gap-2">
-                            <div className="text-lg font-bold">
-                              {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                          <div className="flex items-center gap-4">
+                            <Badge variant={game.status === "published" ? "default" : "secondary"}>
+                              {game.status === "published" ? "Published" : "Pending"}
+                            </Badge>
+                            <div className="text-right flex items-center gap-2">
+                              <div>
+                                <div className="text-xs text-muted-foreground">Yesterday</div>
+                                <div className="text-sm font-bold">
+                                  {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
+                                  className="h-6 w-6 p-0 mt-1"
+                                >
+                                  <Edit className="h-2 w-2" />
+                                </Button>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">Today</div>
+                                <div className="text-lg font-bold">
+                                  {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                                </div>
+                                {game.today_result !== undefined && game.today_result !== null && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => openEditDialog(game.id, game.today_result)}
+                                    className="h-6 w-6 p-0 mt-1"
+                                  >
+                                    <Edit className="h-2 w-2" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                            {game.today_result !== undefined && game.today_result !== null && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => openEditDialog(game.id, game.today_result)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
                           </div>
-                        </div>
                     </div>
                   ))}
                 </div>
