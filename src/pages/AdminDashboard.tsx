@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { games, loading, updateGameResult, editGameResult, editYesterdayResult } = useGames();
+  const { games, loading, updateGameResult, editGameResult, editYesterdayGameResult } = useGames();
   const { user, isAdmin, loading: authLoading, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
@@ -134,7 +134,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    const result = await editYesterdayResult(editingYesterdayGameId, resultNumber);
+    const result = await editYesterdayGameResult(editingYesterdayGameId, resultNumber);
     
     if (result.success) {
       toast.success("Yesterday result updated successfully!");

@@ -99,6 +99,36 @@ export const useGames = () => {
     }
   };
 
+  const editYesterdayGameResult = async (gameId: string, result: number) => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update({ 
+          yesterday_result: result, 
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', gameId);
+
+      if (error) throw error;
+
+      // Update local state
+      setGames(prevGames => 
+        prevGames.map(game => 
+          game.id === gameId 
+            ? { ...game, yesterday_result: result }
+            : game
+        )
+      );
+
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to edit yesterday result' 
+      };
+    }
+  };
+
   useEffect(() => {
     fetchGames();
 
@@ -129,6 +159,7 @@ export const useGames = () => {
     error,
     updateGameResult,
     editGameResult,
+    editYesterdayGameResult,
     refetch: fetchGames
   };
 };
