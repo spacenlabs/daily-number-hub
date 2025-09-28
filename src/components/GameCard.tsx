@@ -55,20 +55,12 @@ const GameCard = ({
         <CardContent className="p-3">
           <div className="space-y-2">
             {/* Header */}
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent truncate">{name}</h3>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-primary flex-shrink-0" />
-                  {formatTo12Hour(scheduledTime)}
-                </p>
-              </div>
-              <Badge variant={getStatusColor(status)} className={`text-xs px-2 py-0.5 ml-2 flex-shrink-0 ${
-                status === 'published' ? 'bg-green-500 text-white' : 
-                'bg-yellow-500 text-white'
-              }`}>
-                {getStatusText(status)}
-              </Badge>
+            <div>
+              <h3 className="font-bold text-sm bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent truncate">{name}</h3>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3 text-primary flex-shrink-0" />
+                {formatTo12Hour(scheduledTime)}
+              </p>
             </div>
 
             {/* Results Display */}
