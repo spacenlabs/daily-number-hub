@@ -99,13 +99,6 @@ const GameCard = ({
                 </div>
               </div>
             </div>
-
-            {/* Game Code */}
-            <div className="text-center">
-              <span className="text-xs font-mono text-primary/70 bg-primary/5 px-2 py-1 rounded border border-primary/20">
-                #{shortCode}
-              </span>
-            </div>
           </div>
         </CardContent>
       </Card>
