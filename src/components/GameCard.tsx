@@ -51,59 +51,57 @@ const GameCard = ({
 
   return (
     <Link to={`/game/${id}`}>
-      <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-card via-card/95 to-primary/5 border-2 border-primary/20 hover:border-primary/40 transform hover:scale-[1.02] animate-fade-in">
-        <CardContent className="p-4">
-          <div className="space-y-4">
+      <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-gradient-to-br from-card to-primary/5 border border-primary/20 hover:border-primary/40 transform hover:scale-[1.01]">
+        <CardContent className="p-3">
+          <div className="space-y-2">
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{name}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1 font-medium">
-                  <Clock className="h-4 w-4 text-primary" />
-                  ⏰ {formatTo12Hour(scheduledTime)}
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-sm bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent truncate">{name}</h3>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-primary flex-shrink-0" />
+                  {formatTo12Hour(scheduledTime)}
                 </p>
               </div>
-              <Badge variant={getStatusColor(status)} className={`text-xs font-bold px-3 py-1 ${
-                status === 'published' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
-                'bg-gradient-to-r from-yellow-500 to-orange-500 text-white'
+              <Badge variant={getStatusColor(status)} className={`text-xs px-2 py-0.5 ml-2 flex-shrink-0 ${
+                status === 'published' ? 'bg-green-500 text-white' : 
+                'bg-yellow-500 text-white'
               }`}>
                 {getStatusText(status)}
               </Badge>
             </div>
 
             {/* Results Display */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {/* Yesterday's Result */}
               <div className="text-center">
-                <div className="text-xs font-bold text-accent mb-2 flex items-center justify-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  🔵 YESTERDAY
+                <div className="text-xs font-medium text-accent mb-1">
+                  Yesterday
                 </div>
-                <div className="bg-gradient-to-br from-accent/10 to-accent-glow/20 border-2 border-accent/40 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center">
+                <div className="bg-accent/10 border border-accent/30 rounded-lg py-2 px-1 min-h-[45px] flex items-center justify-center">
                   {yesterdayResult !== undefined ? (
-                    <span className="text-2xl font-bold text-accent drop-shadow-md">
+                    <span className="text-lg font-bold text-accent">
                       {yesterdayResult}
                     </span>
                   ) : (
-                    <span className="text-sm text-muted-foreground">--</span>
+                    <span className="text-xs text-muted-foreground">--</span>
                   )}
                 </div>
               </div>
 
               {/* Today's Result */}
               <div className="text-center">
-                <div className="text-xs font-bold text-primary mb-2 flex items-center justify-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  🟢 TODAY
+                <div className="text-xs font-medium text-primary mb-1">
+                  Today
                 </div>
-                <div className="bg-gradient-to-br from-primary/10 to-primary-glow/20 border-3 border-primary/50 rounded-xl py-4 px-2 min-h-[80px] flex items-center justify-center animate-glow-pulse">
+                <div className="bg-primary/10 border border-primary/40 rounded-lg py-2 px-1 min-h-[45px] flex items-center justify-center">
                   {todayResult !== undefined ? (
-                    <span className="text-3xl font-black text-primary animate-pulse-result drop-shadow-lg">
+                    <span className="text-lg font-bold text-primary">
                       {todayResult}
                     </span>
                   ) : (
-                    <span className="text-sm font-bold text-primary/70 animate-pulse">
-                      {status === "pending" ? "⏳ PENDING" : "--"}
+                    <span className="text-xs font-medium text-primary/70">
+                      {status === "pending" ? "Pending" : "--"}
                     </span>
                   )}
                 </div>
@@ -111,8 +109,8 @@ const GameCard = ({
             </div>
 
             {/* Game Code */}
-            <div className="text-center mt-3">
-              <span className="text-xs font-bold text-primary/80 font-mono bg-gradient-to-r from-primary/10 to-primary-glow/10 px-3 py-2 rounded-full border border-primary/30">
+            <div className="text-center">
+              <span className="text-xs font-mono text-primary/70 bg-primary/5 px-2 py-1 rounded border border-primary/20">
                 #{shortCode}
               </span>
             </div>
