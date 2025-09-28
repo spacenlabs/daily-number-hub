@@ -73,7 +73,7 @@ const GameCard = ({
                 <div className="bg-accent/10 border border-accent/30 rounded-lg py-2 px-1 min-h-[45px] flex items-center justify-center">
                   {yesterdayResult !== undefined ? (
                     <span className="text-lg font-bold text-accent">
-                      {yesterdayResult}
+                      {yesterdayResult.toString().padStart(2, '0')}
                     </span>
                   ) : (
                     <span className="text-xs text-muted-foreground">--</span>
@@ -89,7 +89,7 @@ const GameCard = ({
                 <div className="bg-primary/10 border border-primary/40 rounded-lg py-2 px-1 min-h-[45px] flex items-center justify-center">
                   {todayResult !== undefined ? (
                     <span className="text-lg font-bold text-primary">
-                      {todayResult}
+                      {todayResult.toString().padStart(2, '0')}
                     </span>
                   ) : (
                     <span className="text-xs font-medium text-primary/70">
