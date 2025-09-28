@@ -34,7 +34,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 max-w-6xl mx-auto">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-2 max-w-6xl mx-auto">
             {games.map((game) => (
               <GameCard
                 key={game.id}
