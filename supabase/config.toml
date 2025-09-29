@@ -1,1 +1,4 @@
 project_id = "lgffdjrwblfycfqarstj"
+
+[functions.daily-migration]
+verify_jwt = false
