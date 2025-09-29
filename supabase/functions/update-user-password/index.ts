@@ -19,38 +19,52 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log('Starting password update function');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    console.log('Environment variables loaded');
     
     // Create admin client for operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Create regular client for auth verification
+    // Get authorization header
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
+      console.error('No authorization header provided');
       return new Response(JSON.stringify({ error: 'No authorization header' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    console.log('Authorization header found');
+
+    // Create regular client for auth verification
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { authorization: authHeader } }
     });
 
     // Verify the user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.error('Authentication failed:', authError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    console.log('User authenticated:', user.id);
+
     const { userId, newPassword, currentPassword }: UpdatePasswordRequest = await req.json();
+    console.log('Request body parsed for user:', userId);
 
     // Validate password length
     if (!newPassword || newPassword.length < 8) {
+      console.error('Password validation failed');
       return new Response(JSON.stringify({ error: 'Password must be at least 8 characters long' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,11 +86,14 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    console.log('Current user profile:', currentUserProfile);
+
     const isUpdatingOwnPassword = user.id === userId;
     const isSuperAdmin = currentUserProfile.role === 'super_admin';
     const canUpdatePassword = isUpdatingOwnPassword || isSuperAdmin;
 
     if (!canUpdatePassword) {
+      console.error('Permission denied for user:', user.id, 'updating:', userId);
       return new Response(JSON.stringify({ error: 'Permission denied' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -86,25 +103,39 @@ const handler = async (req: Request): Promise<Response> => {
     // If user is updating their own password, verify current password
     if (isUpdatingOwnPassword && !isSuperAdmin) {
       if (!currentPassword) {
+        console.error('Current password required for own password update');
         return new Response(JSON.stringify({ error: 'Current password is required' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
+      // Get user email for verification
+      const { data: targetUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (userError || !targetUser.user) {
+        console.error('Error fetching target user:', userError);
+        return new Response(JSON.stringify({ error: 'User not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Verify current password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email!,
+        email: targetUser.user.email!,
         password: currentPassword,
       });
 
       if (signInError) {
+        console.error('Current password verification failed:', signInError);
         return new Response(JSON.stringify({ error: 'Current password is incorrect' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
+
+    console.log('Updating password for user:', userId);
 
     // Update password using admin API
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(

@@ -20,8 +20,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log('Starting profile update function');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    console.log('Environment variables loaded');
     
     // Create admin client for operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
@@ -29,26 +34,33 @@ const handler = async (req: Request): Promise<Response> => {
     // Create regular client for auth verification
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
+      console.error('No authorization header provided');
       return new Response(JSON.stringify({ error: 'No authorization header' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    console.log('Authorization header found');
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { authorization: authHeader } }
     });
 
     // Verify the user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.error('Authentication failed:', authError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    console.log('User authenticated:', user.id);
+
     const { userId, firstName, lastName, email }: UpdateProfileRequest = await req.json();
+    console.log('Request body parsed for user:', userId);
 
     // Check if user has permission to update this profile
     // Users can update their own profile, super_admins can update any profile
@@ -66,8 +78,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    console.log('Current user profile:', currentUserProfile);
+
     const canUpdateProfile = user.id === userId || currentUserProfile.role === 'super_admin';
     if (!canUpdateProfile) {
+      console.error('Permission denied for user:', user.id, 'updating:', userId);
       return new Response(JSON.stringify({ error: 'Permission denied' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -79,6 +94,8 @@ const handler = async (req: Request): Promise<Response> => {
     if (firstName !== undefined) updateData.first_name = firstName;
     if (lastName !== undefined) updateData.last_name = lastName;
     if (email !== undefined) updateData.email = email;
+
+    console.log('Updating profile with data:', updateData);
 
     // Update profile in database
     const { data: updatedProfile, error: updateError } = await supabaseAdmin
@@ -98,6 +115,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If email was updated, update it in auth table as well
     if (email && email !== updatedProfile.email) {
+      console.log('Updating email in auth table');
+      
       const { error: emailUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
         userId,
         { email }

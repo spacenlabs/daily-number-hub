@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
@@ -296,6 +296,9 @@ export const UserManagement = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New User</DialogTitle>
+              <DialogDescription>
+                Create a new user account with name, email, password and role.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -467,6 +470,9 @@ export const UserManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update the user's name and email information.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -516,6 +522,9 @@ export const UserManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Update the password for this user account.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {editingUser?.user_id === profile?.user_id && !isSuperAdmin && (
