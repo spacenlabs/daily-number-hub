@@ -13,7 +13,7 @@ export interface Game {
   updated_at: string;
 }
 
-export const useGames = () => {
+export const useGames = (opts?: { enableRealtime?: boolean }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -143,10 +143,15 @@ export const useGames = () => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     fetchGames();
 
-    // Set up real-time subscription
+    if (! (opts?.enableRealtime ?? true)) {
+      // Realtime disabled: do not subscribe, no polling either
+      return;
+    }
+
+    // Set up real-time subscription only when enabled
     const channel = supabase
       .channel('games-changes')
       .on(
@@ -206,7 +211,7 @@ export const useGames = () => {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [opts?.enableRealtime]);
 
   return {
     games,

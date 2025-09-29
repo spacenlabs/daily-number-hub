@@ -10,7 +10,7 @@ import { ConfigurableSection, useSectionContent } from "@/components/Configurabl
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";
 const Index = () => {
-  const { games, loading, hasLoadedOnce } = useGames();
+  const { games, loading, hasLoadedOnce } = useGames({ enableRealtime: false });
   const { config } = useWebsiteConfigContext();
   const { content: footerContent } = useSectionContent('footer', '/');
   const navigate = useNavigate();
