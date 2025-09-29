@@ -22,6 +22,9 @@ const Index = () => {
       {/* Top Date Banner */}
       <DateBanner />
 
+      {/* Date Banner Above Games Section */}
+      <DateBanner />
+
       {/* Games Grid */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
