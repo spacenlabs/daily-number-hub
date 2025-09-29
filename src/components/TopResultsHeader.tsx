@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useGames } from '@/hooks/useGames';
 import { getDisplayStatus } from '@/lib/time-utils';
 import { format } from 'date-fns';
 
-const TopResultsHeader = () => {
-  const { games, loading } = useGames();
+const TopResultsHeader = React.memo(() => {
+  const { games, loading, hasLoadedOnce } = useGames();
   const currentDateTime = format(new Date(), 'dd MMMM yyyy h:mm aa');
 
-  if (loading) {
+  // Only show skeleton during initial load, not during updates
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="w-full bg-background py-8 text-center">
         <div className="animate-pulse space-y-4">
@@ -26,30 +27,39 @@ const TopResultsHeader = () => {
     );
   }
 
-  // Separate games into published with results and waiting games
-  const publishedGames = games
-    .filter(game => game.status === 'published' && game.today_result !== null)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-  
-  const waitingGames = games
-    .filter(game => {
-      const displayStatus = getDisplayStatus(game);
-      return displayStatus && displayStatus.type === 'wait';
-    });
+  // Memoize game filtering and sorting to prevent unnecessary recalculations
+  const displayedGames = useMemo(() => {
+    // Separate games into published with results and waiting games
+    const publishedGames = games
+      .filter(game => game.status === 'published' && game.today_result !== null)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    
+    const waitingGames = games
+      .filter(game => {
+        const displayStatus = getDisplayStatus(game);
+        return displayStatus && displayStatus.type === 'wait';
+      });
 
-  // Display logic: 1 recent published result + 1 waiting game if available
-  let displayedGames = [];
-  
-  if (waitingGames.length > 0) {
-    // Take 1 most recent published game + 1 waiting game
-    if (publishedGames.length > 0) {
-      displayedGames.push(publishedGames[0]);
+    // Display logic: 1 recent published result + 1 waiting game if available
+    let result = [];
+    
+    if (waitingGames.length > 0) {
+      // Take 1 most recent published game + 1 waiting game
+      if (publishedGames.length > 0) {
+        result.push(publishedGames[0]);
+      }
+      result.push(waitingGames[0]);
+    } else {
+      // No waiting games, take 2 most recent published games
+      result = publishedGames.slice(0, 2);
     }
-    displayedGames.push(waitingGames[0]);
-  } else {
-    // No waiting games, take 2 most recent published games
-    displayedGames = publishedGames.slice(0, 2);
-  }
+
+    // Filter out games that shouldn't be displayed to prevent null renders
+    return result.filter(game => {
+      const displayStatus = getDisplayStatus(game);
+      return displayStatus !== null;
+    });
+  }, [games]);
 
   return (
     <div className="w-full bg-background py-8 px-4">
@@ -66,11 +76,8 @@ const TopResultsHeader = () => {
 
         {/* Games Results */}
         <div className="space-y-8 mt-12">
-          {displayedGames.map((game, index) => {
+          {displayedGames.map((game) => {
             const displayStatus = getDisplayStatus(game);
-            
-            // Don't render upcoming games (when displayStatus is null)
-            if (!displayStatus) return null;
             
             return (
               <div key={game.id} className="space-y-2">
@@ -96,6 +103,6 @@ const TopResultsHeader = () => {
       </div>
     </div>
   );
-};
+});
 
 export default TopResultsHeader;
