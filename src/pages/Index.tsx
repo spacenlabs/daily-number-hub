@@ -19,9 +19,6 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
-      {/* Top Date Banner */}
-      <DateBanner />
-
       {/* Games Grid */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
