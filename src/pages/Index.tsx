@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
-import { ResultsBanner } from "@/components/ResultsBanner";
+import ResultsBanner from "@/components/ResultsBanner";
 import TopResultsHeader from "@/components/TopResultsHeader";
 import { useGames } from "@/contexts/GamesProvider";
 import { ConfigurableSection, useSectionContent } from "@/components/ConfigurableSection";

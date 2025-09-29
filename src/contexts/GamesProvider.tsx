@@ -32,22 +32,32 @@ interface GamesProviderProps {
 export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGames = async () => {
     try {
+      if (!hasLoadedOnce) {
+        setLoading(true);
+      }
       setError(null);
+      
       const { data, error } = await supabase
         .from('games')
-        .select('*')
+        .select('id, name, short_code, scheduled_time, today_result, yesterday_result, status, enabled, updated_at')
         .order('scheduled_time');
 
       if (error) throw error;
 
-      setGames((data || []).map(game => ({
-        ...game,
-        status: game.status as 'published' | 'pending' | 'manual'
-      })));
+      const sortedGames = (data || [])
+        .map(game => ({
+          ...game,
+          status: game.status as 'published' | 'pending' | 'manual'
+        }))
+        .sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+
+      setGames(sortedGames);
+      setHasLoadedOnce(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
     } finally {
@@ -164,17 +174,32 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
           table: 'games'
         },
         (payload) => {
-          // Update state directly instead of refetching
           if (payload.eventType === 'UPDATE' && payload.new) {
-            setGames(prevGames => 
-              prevGames.map(game => 
-                game.id === payload.new.id 
-                  ? { ...game, ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' }
-                  : game
-              )
-            );
+            setGames(prevGames => {
+              const updatedGames = prevGames.map(game => {
+                if (game.id === payload.new.id) {
+                  const newGame = { ...game, ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' };
+                  // Only update if something actually changed
+                  const hasChanged = 
+                    game.status !== newGame.status ||
+                    game.today_result !== newGame.today_result ||
+                    game.yesterday_result !== newGame.yesterday_result ||
+                    game.enabled !== newGame.enabled ||
+                    game.updated_at !== newGame.updated_at;
+                  
+                  return hasChanged ? newGame : game;
+                }
+                return game;
+              });
+              
+              // Keep stable sort order
+              return updatedGames.sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+            });
           } else if (payload.eventType === 'INSERT' && payload.new) {
-            setGames(prevGames => [...prevGames, { ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' } as Game]);
+            setGames(prevGames => {
+              const newGames = [...prevGames, { ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' } as Game];
+              return newGames.sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+            });
           } else if (payload.eventType === 'DELETE' && payload.old) {
             setGames(prevGames => prevGames.filter(game => game.id !== payload.old.id));
           }

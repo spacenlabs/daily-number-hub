@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Game } from '@/contexts/GamesProvider';
 import { getDisplayStatus } from '@/lib/time-utils';
 
@@ -50,30 +50,38 @@ const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) =
     );
   }
 
-  // Separate games into published with results and waiting games
-  const publishedGames = games
-    .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-  
-  const waitingGames = games
-    .filter(game => {
-      const displayStatus = getDisplayStatus(game);
-      return displayStatus && displayStatus.type === 'wait';
-    });
+  // Memoize game filtering and sorting
+  const { publishedGames, waitingGames, displayedGames } = useMemo(() => {
+    const published = games
+      .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    
+    const waiting = games
+      .filter(game => {
+        const displayStatus = getDisplayStatus(game);
+        return displayStatus && displayStatus.type === 'wait';
+      });
 
-  // Display logic: 1 recent published result + 1 waiting game if available
-  let displayedGames = [];
-  
-  if (waitingGames.length > 0) {
-    // Take 1 most recent published game + 1 waiting game
-    if (publishedGames.length > 0) {
-      displayedGames.push(publishedGames[0]);
+    // Display logic: 1 recent published result + 1 waiting game if available
+    let displayed = [];
+    
+    if (waiting.length > 0) {
+      // Take 1 most recent published game + 1 waiting game
+      if (published.length > 0) {
+        displayed.push(published[0]);
+      }
+      displayed.push(waiting[0]);
+    } else {
+      // No waiting games, take 2 most recent published games
+      displayed = published.slice(0, 2);
     }
-    displayedGames.push(waitingGames[0]);
-  } else {
-    // No waiting games, take 2 most recent published games
-    displayedGames = publishedGames.slice(0, 2);
-  }
+
+    return {
+      publishedGames: published,
+      waitingGames: waiting,
+      displayedGames: displayed
+    };
+  }, [games]);
 
   return (
     <div className="w-full bg-background py-8 px-4">
@@ -122,4 +130,4 @@ const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) =
   );
 };
 
-export default TopResultsHeader;
+export default React.memo(TopResultsHeader);
