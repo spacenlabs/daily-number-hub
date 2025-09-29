@@ -1,15 +1,17 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
 import { ResultsBanner } from "@/components/ResultsBanner";
 import { useGames } from "@/hooks/useGames";
-import { useNavigate } from "react-router-dom";
+import { ConfigurableSection, useSectionContent } from "@/components/ConfigurableSection";
+import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";
 const Index = () => {
-  const {
-    games,
-    loading
-  } = useGames();
+  const { games, loading } = useGames();
+  const { config } = useWebsiteConfigContext();
+  const { content: footerContent } = useSectionContent('footer', '/');
   const navigate = useNavigate();
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
@@ -56,16 +58,20 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background/80 border-t border-neon-cyan/20 py-8">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-sm text-muted-foreground">
-            © 2025 Lottery Results System. All rights reserved. • Results for informational purposes only.
+      <ConfigurableSection sectionType="footer" pagePath="/">
+        <footer className="bg-background/80 border-t border-neon-cyan/20 py-8">
+          <div className="container mx-auto px-4">
+            <div className="text-center text-sm text-muted-foreground">
+              {footerContent.text || "© 2025 Lottery Results System. All rights reserved. • Results for informational purposes only."}
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </ConfigurableSection>
       
       {/* Bottom Date Banner */}
-      <DateBanner />
+      <ConfigurableSection sectionType="banner" sectionName="Bottom Date Banner" pagePath="/">
+        <DateBanner />
+      </ConfigurableSection>
     </div>;
 };
 export default Index;
