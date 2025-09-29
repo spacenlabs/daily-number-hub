@@ -25,20 +25,13 @@ const AdminLogin = () => {
   const { toast } = useToast();
   const { signIn, signUp, user, isAdmin, loading: authLoading } = useAuth();
 
-  // Redirect if already logged in and is admin
+  // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      if (isAdmin) {
-        navigate('/admin/dashboard');
-      } else {
-        toast({
-          title: "Access denied",
-          description: "You don't have admin privileges.",
-          variant: "destructive",
-        });
-      }
+      // Redirect all authenticated users to the dashboard
+      navigate('/admin/dashboard');
     }
-  }, [user, isAdmin, authLoading, navigate, toast]);
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent, action: 'signin' | 'signup') => {
     e.preventDefault();
@@ -73,7 +66,7 @@ const AdminLogin = () => {
       } else if (action === 'signup') {
         toast({
           title: "Account created successfully",
-          description: "Please check your email to verify your account. Note: You'll need admin privileges to access the dashboard.",
+          description: "Please check your email to verify your account.",
         });
         setActiveTab('signin');
       }
@@ -103,9 +96,9 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-card-hover">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Admin Access</CardTitle>
+          <CardTitle className="text-2xl font-bold">User Access</CardTitle>
           <CardDescription>
-            Sign in or create an account to access the admin dashboard
+            Sign in or create an account to access your dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +117,7 @@ const AdminLogin = () => {
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="admin@example.com"
+                      placeholder="your-email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10"
@@ -175,7 +168,7 @@ const AdminLogin = () => {
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="admin@example.com"
+                      placeholder="your-email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10"
@@ -215,7 +208,7 @@ const AdminLogin = () => {
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
                 <p className="text-sm text-muted-foreground text-center">
-                  Note: Admin privileges must be granted manually after account creation.
+                  You'll be able to access features based on your account permissions.
                 </p>
               </form>
             </TabsContent>
