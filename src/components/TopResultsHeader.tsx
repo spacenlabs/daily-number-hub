@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useGames } from '@/hooks/useGames';
+import { Game } from '@/hooks/useGames';
 import { getDisplayStatus } from '@/lib/time-utils';
 
-const TopResultsHeader = () => {
-  const { games, loading } = useGames();
+interface TopResultsHeaderProps {
+  games: Game[];
+  loading: boolean;
+}
+
+const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) => {
   const [currentDateTime, setCurrentDateTime] = useState('');
 
   useEffect(() => {
