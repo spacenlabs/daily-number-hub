@@ -69,8 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('user_permissions')
         .select('*')
         .eq('user_id', userId)
-        .is('expires_at', null)
-        .or(`expires_at.gt.${new Date().toISOString()}`);
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (error) {
         console.error('Error fetching permissions:', error);
