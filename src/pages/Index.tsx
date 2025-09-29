@@ -50,12 +50,12 @@ const Index = () => {
       {/* Middle Date Banner */}
       <DateBanner />
 
-      {/* Admin Login Button */}
+      {/* User Login Button */}
       <section className="py-8 bg-card/50 border-t border-neon-cyan/20">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <Button onClick={() => navigate('/admin')} variant="outline" size="sm" className="border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10">
-              🔐 Admin Login
+              🔐 User Login
             </Button>
           </div>
         </div>
