@@ -161,15 +161,6 @@ export const useGames = () => {
     };
   }, []);
 
-  // Polling fallback when realtime is not connected
-  useEffect(() => {
-    if (isRealtimeConnected) return;
-    const interval = setInterval(() => {
-      console.log('Polling games (realtime not connected)');
-      fetchGames();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isRealtimeConnected]);
 
   return {
     games,
