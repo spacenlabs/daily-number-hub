@@ -69,6 +69,11 @@ export const getDisplayStatus = (game: { scheduled_time: string; today_result?: 
     return { type: 'result', value: game.today_result };
   }
   
-  // Always show WAIT if no result, regardless of time
-  return { type: 'wait', value: 'WAIT' };
+  // Only show WAIT if time has passed AND no result is published
+  if (shouldShowWait(game.scheduled_time, hasResult)) {
+    return { type: 'wait', value: 'WAIT' };
+  }
+  
+  // Don't display upcoming games
+  return null;
 };

@@ -46,6 +46,9 @@ const TopResultsHeader = () => {
           {displayedGames.map((game, index) => {
             const displayStatus = getDisplayStatus(game);
             
+            // Don't render upcoming games (when displayStatus is null)
+            if (!displayStatus) return null;
+            
             return (
               <div key={game.id} className="space-y-2">
                 {/* Game Name */}
@@ -53,13 +56,11 @@ const TopResultsHeader = () => {
                   {game.name}
                 </div>
                 
-                {/* Result, WAIT, or Scheduled Time */}
+                {/* Result or WAIT */}
                 <div className={`text-4xl md:text-5xl lg:text-6xl font-bold ${
                   displayStatus.type === 'result' 
                     ? 'text-green-600' 
-                    : displayStatus.type === 'wait'
-                    ? 'text-yellow-600'
-                    : 'text-blue-600'
+                    : 'text-yellow-600'
                 }`}>
                   {displayStatus.value}
                 </div>
