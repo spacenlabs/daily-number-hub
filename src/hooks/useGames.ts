@@ -21,7 +21,10 @@ export const useGames = () => {
 
   const fetchGames = async () => {
     try {
-      setLoading(true);
+      // Only set loading true on initial fetch
+      if (games.length === 0) {
+        setLoading(true);
+      }
       const { data, error } = await supabase
         .from('games')
         .select('*')
