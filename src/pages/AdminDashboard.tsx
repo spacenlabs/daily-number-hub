@@ -66,24 +66,31 @@ const AdminDashboard = () => {
     }
   }, [user, profile, authLoading, navigate, hasRoleOrHigher]);
 
-  // Ensure a valid default tab is selected based on permissions
+  // Set default tab only on initial load based on permissions
   useEffect(() => {
-    const defaultTab = canViewAnalytics
-      ? 'overview'
-      : canManageResults
-        ? 'results'
-        : canManageGames
-          ? 'games'
-          : canManageContent
-            ? 'website'
-            : canManageUsers
-              ? 'users'
-              : 'overview';
+    const getDefaultTab = () => {
+      if (canViewAnalytics) return 'overview';
+      if (canManageResults) return 'results';
+      if (canManageGames) return 'games';
+      if (canManageContent) return 'website';
+      if (canManageUsers) return 'users';
+      return 'overview';
+    };
 
-    if (activeTab !== defaultTab) {
+    // Only set default tab if current tab is not available to user or on first load
+    const defaultTab = getDefaultTab();
+    const availableTabs = [
+      ...(canViewAnalytics ? ['overview'] : []),
+      ...(canManageUsers ? ['users'] : []),
+      ...(canManageGames ? ['games'] : []),
+      ...(canManageResults ? ['results'] : []),
+      ...(canManageContent ? ['website'] : [])
+    ];
+
+    if (!availableTabs.includes(activeTab)) {
       setActiveTab(defaultTab);
     }
-  }, [canViewAnalytics, canManageUsers, canManageGames, canManageResults, canManageContent, activeTab]);
+  }, [canViewAnalytics, canManageUsers, canManageGames, canManageResults, canManageContent]);
 
   // Show loading while checking authentication
   if (authLoading || !user || !hasRoleOrHigher('viewer')) {
