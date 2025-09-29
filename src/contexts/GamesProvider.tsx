@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Game {
@@ -13,11 +13,26 @@ export interface Game {
   updated_at: string;
 }
 
-export const useGames = () => {
+interface GamesContextType {
+  games: Game[];
+  loading: boolean;
+  error: string | null;
+  updateGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
+  editGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
+  editYesterdayGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
+  refetch: () => Promise<void>;
+}
+
+const GamesContext = createContext<GamesContextType | undefined>(undefined);
+
+interface GamesProviderProps {
+  children: ReactNode;
+}
+
+export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true); // Start with true for initial load
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
   const fetchGames = async () => {
     try {
@@ -134,9 +149,9 @@ export const useGames = () => {
   useEffect(() => {
     fetchGames();
 
-    // Set up real-time subscription with better error handling
+    // Set up single real-time subscription for the entire app
     const channel = supabase
-      .channel('games-changes', {
+      .channel('global-games-changes', {
         config: {
           broadcast: { self: false }
         }
@@ -149,7 +164,7 @@ export const useGames = () => {
           table: 'games'
         },
         (payload) => {
-          // Update state directly instead of refetching to prevent loading flickers
+          // Update state directly instead of refetching
           if (payload.eventType === 'UPDATE' && payload.new) {
             setGames(prevGames => 
               prevGames.map(game => 
@@ -165,17 +180,14 @@ export const useGames = () => {
           }
         }
       )
-      .subscribe((status) => {
-        setIsRealtimeConnected(status === 'SUBSCRIBED');
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []); // Empty dependency array is correct here
+  }, []);
 
-
-  return {
+  const value: GamesContextType = {
     games,
     loading,
     error,
@@ -184,4 +196,18 @@ export const useGames = () => {
     editYesterdayGameResult,
     refetch: fetchGames
   };
+
+  return (
+    <GamesContext.Provider value={value}>
+      {children}
+    </GamesContext.Provider>
+  );
+};
+
+export const useGames = (): GamesContextType => {
+  const context = useContext(GamesContext);
+  if (context === undefined) {
+    throw new Error('useGames must be used within a GamesProvider');
+  }
+  return context;
 };

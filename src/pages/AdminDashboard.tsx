@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useGames } from "@/hooks/useGames";
+import { useGames } from "@/contexts/GamesProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -22,11 +22,10 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const {
     games,
-    loading,
     updateGameResult,
     editGameResult,
     editYesterdayGameResult
-  } = useGames();
+  } = useGames(); // Remove loading dependency
   const {
     user,
     profile,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Game } from '@/hooks/useGames';
+import { Game } from '@/contexts/GamesProvider';
 import { isGameUpcoming, isGameOverdue } from '@/lib/time-utils';
 import { Clock, CheckCircle, Timer } from 'lucide-react';
 interface ResultsBannerProps {

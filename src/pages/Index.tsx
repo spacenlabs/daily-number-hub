@@ -5,7 +5,7 @@ import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
 import { ResultsBanner } from "@/components/ResultsBanner";
 import TopResultsHeader from "@/components/TopResultsHeader";
-import { useGames } from "@/hooks/useGames";
+import { useGames } from "@/contexts/GamesProvider";
 import { ConfigurableSection, useSectionContent } from "@/components/ConfigurableSection";
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";

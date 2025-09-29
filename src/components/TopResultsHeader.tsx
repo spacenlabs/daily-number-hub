@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Game } from '@/hooks/useGames';
+import { Game } from '@/contexts/GamesProvider';
 import { getDisplayStatus } from '@/lib/time-utils';
 
 interface TopResultsHeaderProps {
@@ -30,7 +30,8 @@ const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) =
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
+  // Show skeleton only if no games data yet AND loading
+  if (loading && games.length === 0) {
     return (
       <div className="w-full bg-background py-8 text-center">
         <div className="animate-pulse space-y-4">
