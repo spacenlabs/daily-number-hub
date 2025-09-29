@@ -8,6 +8,7 @@ import { formatTo12Hour } from "@/lib/time-utils";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { UserManagement } from "@/components/UserManagement";
 import { ROLE_LABELS } from "@/types/permissions";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Home, 
   Settings, 
@@ -22,7 +23,8 @@ import {
   Eye,
   GamepadIcon,
   FileText,
-  Calendar
+  Calendar,
+  Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -187,6 +189,31 @@ const AdminDashboard = () => {
     setIsEditYesterdayResultOpen(true);
   };
 
+  const handleLogoutAllDevices = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('logout-all-devices', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Logout all devices error:', error);
+        toast.error('Failed to logout from all devices');
+        return;
+      }
+
+      toast.success('Successfully logged out from all devices');
+      // Wait a moment then redirect
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Failed to logout from all devices');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center">
@@ -227,6 +254,15 @@ const AdminDashboard = () => {
                   Public Site
                 </Button>
               </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={handleLogoutAllDevices}
+              >
+                <Smartphone className="h-4 w-4" />
+                Log Out All Devices
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
