@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
+import { ResultsBanner } from "@/components/ResultsBanner";
 import { useGames } from "@/hooks/useGames";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-bg.jpg";
@@ -19,13 +20,12 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
+      {/* Results Summary Banner */}
+      <ResultsBanner games={games} />
+
       {/* Games Grid */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          {/* Date Banner Above Grid */}
-          <div className="mb-8">
-            <DateBanner />
-          </div>
           
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4 mx-[15px]">* SATTA KING *
