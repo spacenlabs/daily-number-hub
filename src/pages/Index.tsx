@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
-import ResultsBanner from "@/components/ResultsBanner";
+import { ResultsBanner } from "@/components/ResultsBanner";
 import TopResultsHeader from "@/components/TopResultsHeader";
-import { useGames } from "@/contexts/GamesProvider";
+import { useGames } from "@/hooks/useGames";
 import { ConfigurableSection, useSectionContent } from "@/components/ConfigurableSection";
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";
@@ -14,42 +14,35 @@ const Index = () => {
   const { config } = useWebsiteConfigContext();
   const { content: footerContent } = useSectionContent('footer', '/');
   const navigate = useNavigate();
-  // Render the page without blocking on loading to avoid flickers
-  // Content components handle empty states gracefully
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading games...</p>
+        </div>
+      </div>;
+  }
   return <div className="min-h-screen bg-background">
       {/* Top Results Header */}
-      <TopResultsHeader games={games} loading={loading} />
+      <TopResultsHeader />
 
       {/* Results Summary Banner */}
       <ResultsBanner games={games} />
 
       {/* Games Grid */}
-      <section className="py-8 md:py-16 bg-background">
-        <div className="container mx-auto px-2 sm:px-4">
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
           
-          <div className="text-center mb-6 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 md:mb-4 leading-tight">
-              * SATTA KING *<br className="sm:hidden" />
-              <span className="sm:hidden"> </span>*LIVE RESULTS *
-            </h2>
-            <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
-              🎯 Tap any game card to view complete history and export data
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4 mx-[15px]">* SATTA KING *
+*LIVE RESULTS *</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              🎯 Click any game card to view complete history and export data
             </p>
           </div>
 
-          <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 max-w-6xl mx-auto">
-            {games.map(game => (
-              <GameCard
-                key={game.id}
-                id={game.id}
-                name={game.name}
-                shortCode={game.short_code}
-                scheduledTime={game.scheduled_time}
-                todayResult={game.today_result ?? undefined}
-                yesterdayResult={game.yesterday_result ?? undefined}
-                status={game.status}
-              />
-            ))}
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-w-6xl mx-auto">
+            {games.map(game => <GameCard key={game.id} id={game.id} name={game.name} shortCode={game.short_code} scheduledTime={game.scheduled_time} todayResult={game.today_result || undefined} yesterdayResult={game.yesterday_result || undefined} status={game.status} />)}
           </div>
         </div>
       </section>

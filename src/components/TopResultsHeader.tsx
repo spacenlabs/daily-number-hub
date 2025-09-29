@@ -1,37 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Game } from '@/contexts/GamesProvider';
+import React from 'react';
+import { useGames } from '@/hooks/useGames';
 import { getDisplayStatus } from '@/lib/time-utils';
+import { format } from 'date-fns';
 
-interface TopResultsHeaderProps {
-  games: Game[];
-  loading: boolean;
-}
+const TopResultsHeader = () => {
+  const { games, loading } = useGames();
+  const currentDateTime = format(new Date(), 'dd MMMM yyyy h:mm aa');
 
-const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) => {
-  const [currentDateTime, setCurrentDateTime] = useState('');
-
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      };
-      setCurrentDateTime(now.toLocaleDateString('en-US', options));
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Show skeleton only if no games data yet AND loading
-  if (loading && games.length === 0) {
+  if (loading) {
     return (
       <div className="w-full bg-background py-8 text-center">
         <div className="animate-pulse space-y-4">
@@ -50,38 +26,30 @@ const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) =
     );
   }
 
-  // Memoize game filtering and sorting
-  const { publishedGames, waitingGames, displayedGames } = useMemo(() => {
-    const published = games
-      .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-    
-    const waiting = games
-      .filter(game => {
-        const displayStatus = getDisplayStatus(game);
-        return displayStatus && displayStatus.type === 'wait';
-      });
+  // Separate games into published with results and waiting games
+  const publishedGames = games
+    .filter(game => game.status === 'published' && game.today_result !== null)
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  
+  const waitingGames = games
+    .filter(game => {
+      const displayStatus = getDisplayStatus(game);
+      return displayStatus && displayStatus.type === 'wait';
+    });
 
-    // Display logic: 1 recent published result + 1 waiting game if available
-    let displayed = [];
-    
-    if (waiting.length > 0) {
-      // Take 1 most recent published game + 1 waiting game
-      if (published.length > 0) {
-        displayed.push(published[0]);
-      }
-      displayed.push(waiting[0]);
-    } else {
-      // No waiting games, take 2 most recent published games
-      displayed = published.slice(0, 2);
+  // Display logic: 1 recent published result + 1 waiting game if available
+  let displayedGames = [];
+  
+  if (waitingGames.length > 0) {
+    // Take 1 most recent published game + 1 waiting game
+    if (publishedGames.length > 0) {
+      displayedGames.push(publishedGames[0]);
     }
-
-    return {
-      publishedGames: published,
-      waitingGames: waiting,
-      displayedGames: displayed
-    };
-  }, [games]);
+    displayedGames.push(waitingGames[0]);
+  } else {
+    // No waiting games, take 2 most recent published games
+    displayedGames = publishedGames.slice(0, 2);
+  }
 
   return (
     <div className="w-full bg-background py-8 px-4">
@@ -130,4 +98,4 @@ const TopResultsHeader: React.FC<TopResultsHeaderProps> = ({ games, loading }) =
   );
 };
 
-export default React.memo(TopResultsHeader);
+export default TopResultsHeader;

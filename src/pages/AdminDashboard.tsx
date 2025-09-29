@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useGames } from "@/contexts/GamesProvider";
+import { useGames } from "@/hooks/useGames";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -22,10 +22,11 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const {
     games,
+    loading,
     updateGameResult,
     editGameResult,
     editYesterdayGameResult
-  } = useGames(); // Remove loading dependency
+  } = useGames();
   const {
     user,
     profile,
@@ -178,8 +179,14 @@ const AdminDashboard = () => {
       toast.error('Failed to logout from all devices');
     }
   };
-  // Don't show loading screen for games data in dashboard - it should only block on auth
-  // Games loading is handled gracefully within the UI components
+  if (loading) {
+    return <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>;
+  }
   return <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="bg-card border-b shadow-sm">
@@ -230,36 +237,36 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : canManageContent ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-0.5 sm:gap-1 h-auto p-1`}>
-            {canViewAnalytics && <TabsTrigger value="overview" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
-                <BarChart3 className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : canManageContent ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-1`}>
+            {canViewAnalytics && <TabsTrigger value="overview" className="text-xs sm:text-sm">
+                <BarChart3 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Overview</span>
-                <span className="sm:hidden truncate">Stats</span>
+                <span className="sm:hidden">Stats</span>
               </TabsTrigger>}
-            {canManageUsers && <TabsTrigger value="users" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
-                <Users className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Users</span>
+            {canManageUsers && <TabsTrigger value="users" className="text-xs sm:text-sm">
+                <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                Users
               </TabsTrigger>}
-            {canManageGames && <TabsTrigger value="games" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
-                <GamepadIcon className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Games</span>
+            {canManageGames && <TabsTrigger value="games" className="text-xs sm:text-sm">
+                <GamepadIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                Games
               </TabsTrigger>}
-            {canManageResults && <TabsTrigger value="results" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
-                <Calendar className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                <span className="truncate">Results</span>
+            {canManageResults && <TabsTrigger value="results" className="text-xs sm:text-sm">
+                <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                Results
               </TabsTrigger>}
-            {canManageContent && <TabsTrigger value="website" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
-                <FileText className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+            {canManageContent && <TabsTrigger value="website" className="text-xs sm:text-sm">
+                <FileText className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Website Builder</span>
-                <span className="sm:hidden truncate">Site</span>
+                <span className="sm:hidden">Website</span>
               </TabsTrigger>}
           </TabsList>
 
           {canViewAnalytics && <TabsContent value="overview" className="space-y-6">
               {/* Stats Cards */}
-              <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Games</CardTitle>

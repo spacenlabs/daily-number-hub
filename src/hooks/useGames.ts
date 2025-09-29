@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Game {
@@ -13,51 +13,25 @@ export interface Game {
   updated_at: string;
 }
 
-interface GamesContextType {
-  games: Game[];
-  loading: boolean;
-  error: string | null;
-  updateGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
-  editGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
-  editYesterdayGameResult: (gameId: string, result: number) => Promise<{ success: boolean; error?: string }>;
-  refetch: () => Promise<void>;
-}
-
-const GamesContext = createContext<GamesContextType | undefined>(undefined);
-
-interface GamesProviderProps {
-  children: ReactNode;
-}
-
-export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
+export const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGames = async () => {
     try {
-      if (!hasLoadedOnce) {
-        setLoading(true);
-      }
-      setError(null);
-      
+      setLoading(true);
       const { data, error } = await supabase
         .from('games')
-        .select('id, name, short_code, scheduled_time, today_result, yesterday_result, status, enabled, updated_at')
+        .select('*')
         .order('scheduled_time');
 
       if (error) throw error;
 
-      const sortedGames = (data || [])
-        .map(game => ({
-          ...game,
-          status: game.status as 'published' | 'pending' | 'manual'
-        }))
-        .sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
-
-      setGames(sortedGames);
-      setHasLoadedOnce(true);
+      setGames((data || []).map(game => ({
+        ...game,
+        status: game.status as 'published' | 'pending' | 'manual'
+      })));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
     } finally {
@@ -159,13 +133,9 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
   useEffect(() => {
     fetchGames();
 
-    // Set up single real-time subscription for the entire app
+    // Set up real-time subscription
     const channel = supabase
-      .channel('global-games-changes', {
-        config: {
-          broadcast: { self: false }
-        }
-      })
+      .channel('games-changes')
       .on(
         'postgres_changes',
         {
@@ -174,45 +144,21 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
           table: 'games'
         },
         (payload) => {
-          if (payload.eventType === 'UPDATE' && payload.new) {
-            setGames(prevGames => {
-              const updatedGames = prevGames.map(game => {
-                if (game.id === payload.new.id) {
-                  const newGame = { ...game, ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' };
-                  // Only update if something actually changed
-                  const hasChanged = 
-                    game.status !== newGame.status ||
-                    game.today_result !== newGame.today_result ||
-                    game.yesterday_result !== newGame.yesterday_result ||
-                    game.enabled !== newGame.enabled ||
-                    game.updated_at !== newGame.updated_at;
-                  
-                  return hasChanged ? newGame : game;
-                }
-                return game;
-              });
-              
-              // Keep stable sort order
-              return updatedGames.sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
-            });
-          } else if (payload.eventType === 'INSERT' && payload.new) {
-            setGames(prevGames => {
-              const newGames = [...prevGames, { ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' } as Game];
-              return newGames.sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
-            });
-          } else if (payload.eventType === 'DELETE' && payload.old) {
-            setGames(prevGames => prevGames.filter(game => game.id !== payload.old.id));
-          }
+          console.log('Real-time update received:', payload);
+          fetchGames(); // Refetch when any change happens
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, []);
 
-  const value: GamesContextType = {
+  return {
     games,
     loading,
     error,
@@ -221,18 +167,4 @@ export const GamesProvider: React.FC<GamesProviderProps> = ({ children }) => {
     editYesterdayGameResult,
     refetch: fetchGames
   };
-
-  return (
-    <GamesContext.Provider value={value}>
-      {children}
-    </GamesContext.Provider>
-  );
-};
-
-export const useGames = (): GamesContextType => {
-  const context = useContext(GamesContext);
-  if (context === undefined) {
-    throw new Error('useGames must be used within a GamesProvider');
-  }
-  return context;
 };
