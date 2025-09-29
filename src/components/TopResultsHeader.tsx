@@ -26,11 +26,30 @@ const TopResultsHeader = () => {
     );
   }
 
-  // Show only the 2 most recently published games
-  const displayedGames = games
+  // Separate games into published with results and waiting games
+  const publishedGames = games
     .filter(game => game.status === 'published' && game.today_result !== null)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, 2);
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  
+  const waitingGames = games
+    .filter(game => {
+      const displayStatus = getDisplayStatus(game);
+      return displayStatus && displayStatus.type === 'wait';
+    });
+
+  // Display logic: 1 recent published result + 1 waiting game if available
+  let displayedGames = [];
+  
+  if (waitingGames.length > 0) {
+    // Take 1 most recent published game + 1 waiting game
+    if (publishedGames.length > 0) {
+      displayedGames.push(publishedGames[0]);
+    }
+    displayedGames.push(waitingGames[0]);
+  } else {
+    // No waiting games, take 2 most recent published games
+    displayedGames = publishedGames.slice(0, 2);
+  }
 
   return (
     <div className="w-full bg-background py-8 px-4">
