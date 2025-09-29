@@ -9,23 +9,7 @@ import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { UserManagement } from "@/components/UserManagement";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  Home, 
-  Settings, 
-  Users, 
-  BarChart3, 
-  Plus,
-  Edit,
-  Trash2,
-  LogOut,
-  Clock,
-  Shield,
-  Eye,
-  GamepadIcon,
-  FileText,
-  Calendar,
-  Smartphone
-} from "lucide-react";
+import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,14 +18,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { games, loading, updateGameResult, editGameResult, editYesterdayGameResult } = useGames();
-  const { 
-    user, 
-    profile, 
-    loading: authLoading, 
+  const {
+    games,
+    loading,
+    updateGameResult,
+    editGameResult,
+    editYesterdayGameResult
+  } = useGames();
+  const {
+    user,
+    profile,
+    loading: authLoading,
     signOut,
     canManageUsers,
     canManageGames,
@@ -81,14 +70,7 @@ const AdminDashboard = () => {
 
     // Only set default tab if current tab is not available to user or on first load
     const defaultTab = getDefaultTab();
-    const availableTabs = [
-      ...(canViewAnalytics ? ['overview'] : []),
-      ...(canManageUsers ? ['users'] : []),
-      ...(canManageGames ? ['games'] : []),
-      ...(canManageResults ? ['results'] : []),
-      ...(canManageContent ? ['website'] : [])
-    ];
-
+    const availableTabs = [...(canViewAnalytics ? ['overview'] : []), ...(canManageUsers ? ['users'] : []), ...(canManageGames ? ['games'] : []), ...(canManageResults ? ['results'] : []), ...(canManageContent ? ['website'] : [])];
     if (!availableTabs.includes(activeTab)) {
       setActiveTab(defaultTab);
     }
@@ -96,14 +78,12 @@ const AdminDashboard = () => {
 
   // Show loading while checking authentication
   if (authLoading || !user || !hasRoleOrHigher('viewer')) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+    return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
           <p className="mt-4">Loading dashboard...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Calculate stats dynamically
@@ -111,20 +91,16 @@ const AdminDashboard = () => {
     totalGames: games.length,
     todayResults: games.filter(game => game.today_result !== undefined && game.today_result !== null).length,
     pendingResults: games.filter(game => game.status === "pending").length,
-    totalPlays: 1247,
+    totalPlays: 1247
   };
-
   const handleAddResult = async () => {
     if (!selectedGameId || !newResult) return;
-    
     const resultNumber = parseInt(newResult);
     if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
       toast.error("Please enter a valid result (0-99)");
       return;
     }
-
     const result = await updateGameResult(selectedGameId, resultNumber);
-    
     if (result.success) {
       toast.success("Result added successfully!");
       setIsAddResultOpen(false);
@@ -134,18 +110,14 @@ const AdminDashboard = () => {
       toast.error(result.error || "Failed to add result");
     }
   };
-
   const handleEditResult = async () => {
     if (!editingGameId || !editResult) return;
-    
     const resultNumber = parseInt(editResult);
     if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
       toast.error("Please enter a valid result (0-99)");
       return;
     }
-
     const result = await editGameResult(editingGameId, resultNumber);
-    
     if (result.success) {
       toast.success("Result updated successfully!");
       setIsEditResultOpen(false);
@@ -155,24 +127,19 @@ const AdminDashboard = () => {
       toast.error(result.error || "Failed to update result");
     }
   };
-
   const openEditDialog = (gameId: string, currentResult: number | null) => {
     setEditingGameId(gameId);
     setEditResult(currentResult?.toString() || "");
     setIsEditResultOpen(true);
   };
-
   const handleEditYesterdayResult = async () => {
     if (!editingYesterdayGameId || !editYesterdayResult) return;
-    
     const resultNumber = parseInt(editYesterdayResult);
     if (isNaN(resultNumber) || resultNumber < 0 || resultNumber > 99) {
       toast.error("Please enter a valid result (0-99)");
       return;
     }
-
     const result = await editYesterdayGameResult(editingYesterdayGameId, resultNumber);
-    
     if (result.success) {
       toast.success("Yesterday result updated successfully!");
       setIsEditYesterdayResultOpen(false);
@@ -182,27 +149,26 @@ const AdminDashboard = () => {
       toast.error(result.error || "Failed to update yesterday result");
     }
   };
-
   const openEditYesterdayDialog = (gameId: string, currentResult: number | null) => {
     setEditingYesterdayGameId(gameId);
     setEditYesterdayResult(currentResult?.toString() || "");
     setIsEditYesterdayResultOpen(true);
   };
-
   const handleLogoutAllDevices = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('logout-all-devices', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('logout-all-devices', {
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
-
       if (error) {
         console.error('Logout all devices error:', error);
         toast.error('Failed to logout from all devices');
         return;
       }
-
       toast.success('Successfully logged out from all devices');
       // Wait a moment then redirect
       setTimeout(() => {
@@ -213,20 +179,15 @@ const AdminDashboard = () => {
       toast.error('Failed to logout from all devices');
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+    return <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-muted/30">
+  return <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -257,26 +218,16 @@ const AdminDashboard = () => {
                     <span className="hidden sm:inline">Public Site</span>
                   </Button>
                 </Link>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-1 text-xs"
-                  onClick={handleLogoutAllDevices}
-                >
+                <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={handleLogoutAllDevices}>
                   <Smartphone className="h-3 w-3" />
                   <span className="hidden md:inline">Log Out All Devices</span>
-                  <span className="md:hidden">All Devices</span>
+                  <span className="md:hidden">All Devices Logout</span>
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-1 text-xs"
-                  onClick={async () => {
-                    await signOut();
-                    toast.success("Logged out successfully");
-                    navigate('/');
-                  }}
-                >
+                <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={async () => {
+                await signOut();
+                toast.success("Logged out successfully");
+                navigate('/');
+              }}>
                   <LogOut className="h-3 w-3" />
                   <span className="hidden sm:inline">Logout</span>
                 </Button>
@@ -289,42 +240,31 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : canManageContent ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-1`}>
-            {canViewAnalytics && (
-              <TabsTrigger value="overview" className="text-xs sm:text-sm">
+            {canViewAnalytics && <TabsTrigger value="overview" className="text-xs sm:text-sm">
                 <BarChart3 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Overview</span>
                 <span className="sm:hidden">Stats</span>
-              </TabsTrigger>
-            )}
-            {canManageUsers && (
-              <TabsTrigger value="users" className="text-xs sm:text-sm">
+              </TabsTrigger>}
+            {canManageUsers && <TabsTrigger value="users" className="text-xs sm:text-sm">
                 <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Users
-              </TabsTrigger>
-            )}
-            {canManageGames && (
-              <TabsTrigger value="games" className="text-xs sm:text-sm">
+              </TabsTrigger>}
+            {canManageGames && <TabsTrigger value="games" className="text-xs sm:text-sm">
                 <GamepadIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Games
-              </TabsTrigger>
-            )}
-            {canManageResults && (
-              <TabsTrigger value="results" className="text-xs sm:text-sm">
+              </TabsTrigger>}
+            {canManageResults && <TabsTrigger value="results" className="text-xs sm:text-sm">
                 <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Results
-              </TabsTrigger>
-            )}
-            {canManageContent && (
-              <TabsTrigger value="website" className="text-xs sm:text-sm">
+              </TabsTrigger>}
+            {canManageContent && <TabsTrigger value="website" className="text-xs sm:text-sm">
                 <FileText className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Website Builder</span>
                 <span className="sm:hidden">Website</span>
-              </TabsTrigger>
-            )}
+              </TabsTrigger>}
           </TabsList>
 
-          {canViewAnalytics && (
-            <TabsContent value="overview" className="space-y-6">
+          {canViewAnalytics && <TabsContent value="overview" className="space-y-6">
               {/* Stats Cards */}
               <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
@@ -389,17 +329,13 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          )}
+            </TabsContent>}
 
-          {canManageUsers && (
-            <TabsContent value="users" className="space-y-6">
+          {canManageUsers && <TabsContent value="users" className="space-y-6">
               <UserManagement />
-            </TabsContent>
-          )}
+            </TabsContent>}
 
-          {canManageGames && (
-            <TabsContent value="games" className="space-y-4 sm:space-y-6">
+          {canManageGames && <TabsContent value="games" className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
                 <Button className="gap-2 w-full sm:w-auto">
@@ -409,8 +345,7 @@ const AdminDashboard = () => {
               </div>
 
               <div className="grid gap-3 sm:gap-4">
-                {games.map((game) => (
-                  <Card key={game.id}>
+                {games.map(game => <Card key={game.id}>
                     <CardContent className="p-3 sm:p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -436,33 +371,18 @@ const AdminDashboard = () => {
                               <div className="text-sm sm:text-lg font-bold">
                                 {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
                               </div>
-                              {canManageResults && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
-                                  className="mt-1 w-full sm:w-auto"
-                                >
+                              {canManageResults && <Button variant="outline" size="sm" onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)} className="mt-1 w-full sm:w-auto">
                                   <Edit className="h-3 w-3" />
-                                </Button>
-                              )}
+                                </Button>}
                             </div>
                             <div className="text-center flex-1 sm:flex-none">
                               <div className="text-xs text-muted-foreground">Today</div>
                               <div className="text-lg sm:text-xl font-bold">
                                 {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
                               </div>
-                              {canManageResults && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openEditDialog(game.id, game.today_result)}
-                                  disabled={game.today_result === null || game.today_result === undefined}
-                                  className="mt-1 w-full sm:w-auto"
-                                >
+                              {canManageResults && <Button variant="outline" size="sm" onClick={() => openEditDialog(game.id, game.today_result)} disabled={game.today_result === null || game.today_result === undefined} className="mt-1 w-full sm:w-auto">
                                   <Edit className="h-3 w-3" />
-                                </Button>
-                              )}
+                                </Button>}
                             </div>
                           </div>
                           <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -471,14 +391,11 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
+                  </Card>)}
               </div>
-            </TabsContent>
-          )}
+            </TabsContent>}
 
-          {canManageResults && (
-            <TabsContent value="results" className="space-y-4 sm:space-y-6">
+          {canManageResults && <TabsContent value="results" className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <h2 className="text-lg sm:text-xl font-semibold">Manage Results</h2>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -501,25 +418,15 @@ const AdminDashboard = () => {
                             <SelectValue placeholder="Choose a game" />
                           </SelectTrigger>
                           <SelectContent>
-                            {games.filter(game => game.status === "pending").map((game) => (
-                              <SelectItem key={game.id} value={game.id}>
+                            {games.filter(game => game.status === "pending").map(game => <SelectItem key={game.id} value={game.id}>
                                 {game.name} ({game.short_code}) - {formatTo12Hour(game.scheduled_time)}
-                              </SelectItem>
-                            ))}
+                              </SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
                         <Label htmlFor="result-input">Result (0-99)</Label>
-                        <Input
-                          id="result-input"
-                          type="number"
-                          min="0"
-                          max="99"
-                          value={newResult}
-                          onChange={(e) => setNewResult(e.target.value)}
-                          placeholder="Enter result number"
-                        />
+                        <Input id="result-input" type="number" min="0" max="99" value={newResult} onChange={e => setNewResult(e.target.value)} placeholder="Enter result number" />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsAddResultOpen(false)}>
@@ -547,15 +454,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <Label htmlFor="edit-result-input">Result (0-99)</Label>
-                        <Input
-                          id="edit-result-input"
-                          type="number"
-                          min="0"
-                          max="99"
-                          value={editResult}
-                          onChange={(e) => setEditResult(e.target.value)}
-                          placeholder="Enter result number"
-                        />
+                        <Input id="edit-result-input" type="number" min="0" max="99" value={editResult} onChange={e => setEditResult(e.target.value)} placeholder="Enter result number" />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsEditResultOpen(false)}>
@@ -583,15 +482,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <Label htmlFor="edit-yesterday-result-input">Yesterday Result (0-99)</Label>
-                        <Input
-                          id="edit-yesterday-result-input"
-                          type="number"
-                          min="0"
-                          max="99"
-                          value={editYesterdayResult}
-                          onChange={(e) => setEditYesterdayResult(e.target.value)}
-                          placeholder="Enter yesterday result number"
-                        />
+                        <Input id="edit-yesterday-result-input" type="number" min="0" max="99" value={editYesterdayResult} onChange={e => setEditYesterdayResult(e.target.value)} placeholder="Enter yesterday result number" />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsEditYesterdayResultOpen(false)}>
@@ -614,8 +505,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {games.map((game) => (
-                    <div key={game.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                  {games.map(game => <div key={game.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                       <div className="flex items-center gap-4">
                         <div>
                           <h4 className="font-medium">{game.name}</h4>
@@ -635,12 +525,7 @@ const AdminDashboard = () => {
                                 <div className="text-sm font-bold">
                                   {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
                                 </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
-                                  className="h-6 w-6 p-0 mt-1"
-                                >
+                                <Button variant="outline" size="sm" onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)} className="h-6 w-6 p-0 mt-1">
                                   <Edit className="h-2 w-2" />
                                 </Button>
                               </div>
@@ -649,36 +534,23 @@ const AdminDashboard = () => {
                                 <div className="text-lg font-bold">
                                   {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
                                 </div>
-                                {game.today_result !== undefined && game.today_result !== null && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => openEditDialog(game.id, game.today_result)}
-                                    className="h-6 w-6 p-0 mt-1"
-                                  >
+                                {game.today_result !== undefined && game.today_result !== null && <Button variant="outline" size="sm" onClick={() => openEditDialog(game.id, game.today_result)} className="h-6 w-6 p-0 mt-1">
                                     <Edit className="h-2 w-2" />
-                                  </Button>
-                                )}
+                                  </Button>}
                               </div>
                             </div>
                           </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-          )}
+          </TabsContent>}
 
-          {canManageContent && (
-            <TabsContent value="website" className="space-y-6">
+          {canManageContent && <TabsContent value="website" className="space-y-6">
               <WebsiteBuilder />
-            </TabsContent>
-          )}
+            </TabsContent>}
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminDashboard;
