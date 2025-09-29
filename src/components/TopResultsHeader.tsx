@@ -85,7 +85,9 @@ const TopResultsHeader = () => {
                     ? 'text-success' 
                     : 'text-warning'
                 }`}>
-                  {displayStatus.value}
+                  {displayStatus.type === 'result' 
+                    ? String(displayStatus.value).padStart(2, '0')
+                    : displayStatus.value}
                 </div>
               </div>
             );
