@@ -142,13 +142,17 @@ export const useGames = () => {
           schema: 'public',
           table: 'games'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time update received:', payload);
           fetchGames(); // Refetch when any change happens
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, []);
