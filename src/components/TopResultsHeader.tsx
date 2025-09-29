@@ -26,7 +26,11 @@ const TopResultsHeader = () => {
     );
   }
 
-  const displayedGames = games.slice(0, 4); // Show first 4 games
+  // Show only the 2 most recently published games
+  const displayedGames = games
+    .filter(game => game.status === 'published' && game.today_result !== null)
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 2);
 
   return (
     <div className="w-full bg-background py-8 px-4">

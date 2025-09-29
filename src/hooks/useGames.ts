@@ -10,6 +10,7 @@ export interface Game {
   yesterday_result?: number | null;
   status: 'published' | 'pending' | 'manual';
   enabled: boolean;
+  updated_at: string;
 }
 
 export const useGames = () => {
