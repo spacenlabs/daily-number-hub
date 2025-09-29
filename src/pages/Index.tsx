@@ -25,6 +25,11 @@ const Index = () => {
       {/* Games Grid */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
+          {/* Date Banner Above Grid */}
+          <div className="mb-8">
+            <DateBanner />
+          </div>
+          
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4 mx-[15px]">* SATTA KING *
 *LIVE RESULTS *</h2>
