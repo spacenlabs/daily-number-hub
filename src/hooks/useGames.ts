@@ -17,6 +17,7 @@ export const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
   const fetchGames = async () => {
     try {
@@ -150,6 +151,8 @@ export const useGames = () => {
       )
       .subscribe((status) => {
         console.log('Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') setIsRealtimeConnected(true);
+        if (status === 'CLOSED' || status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') setIsRealtimeConnected(false);
       });
 
     return () => {
@@ -157,6 +160,16 @@ export const useGames = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Polling fallback when realtime is not connected
+  useEffect(() => {
+    if (isRealtimeConnected) return;
+    const interval = setInterval(() => {
+      console.log('Polling games (realtime not connected)');
+      fetchGames();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isRealtimeConnected]);
 
   return {
     games,
