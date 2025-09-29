@@ -10,19 +10,10 @@ import { ConfigurableSection, useSectionContent } from "@/components/Configurabl
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";
 const Index = () => {
-  const { games, loading, refetch } = useGames();
+  const { games, loading } = useGames();
   const { config } = useWebsiteConfigContext();
   const { content: footerContent } = useSectionContent('footer', '/');
   const navigate = useNavigate();
-
-  // Auto-refresh every 5 minutes
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      refetch();
-    }, 5 * 60 * 1000); // 5 minutes in milliseconds
-
-    return () => clearInterval(interval);
-  }, [refetch]);
   // Render the page without blocking on loading to avoid flickers
   // Content components handle empty states gracefully
   return <div className="min-h-screen bg-background">
