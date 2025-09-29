@@ -45,7 +45,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { email, password, role } = await req.json()
+    const { email, password, role, firstName, lastName } = await req.json()
 
     if (!email || !password || !role) {
       throw new Error('Missing required fields: email, password, role')
@@ -75,7 +75,9 @@ serve(async (req) => {
       email_confirm: true,
       user_metadata: {
         created_by_admin: true,
-        created_by: user.id
+        created_by: user.id,
+        first_name: firstName,
+        last_name: lastName
       }
     })
 

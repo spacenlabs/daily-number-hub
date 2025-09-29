@@ -18,20 +18,33 @@ interface UserProfile {
   user_id: string;
   email: string;
   role: AppRole;
+  first_name?: string;
+  last_name?: string;
   created_at: string;
   updated_at: string;
 }
 
 export const UserManagement = () => {
-  const { canManageUsers, profile } = useAuth();
+  const { canManageUsers, profile, isSuperAdmin } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserFirstName, setNewUserFirstName] = useState('');
+  const [newUserLastName, setNewUserLastName] = useState('');
   const [newUserRole, setNewUserRole] = useState<AppRole>('user');
+  
+  // Edit form states
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
 
   useEffect(() => {
     if (canManageUsers) {
@@ -91,7 +104,9 @@ export const UserManagement = () => {
         body: {
           email: newUserEmail,
           password: newUserPassword,
-          role: newUserRole
+          role: newUserRole,
+          firstName: newUserFirstName,
+          lastName: newUserLastName
         }
       });
 
@@ -107,6 +122,8 @@ export const UserManagement = () => {
       setIsAddUserOpen(false);
       setNewUserEmail('');
       setNewUserPassword('');
+      setNewUserFirstName('');
+      setNewUserLastName('');
       setNewUserRole('user');
       
       toast({
@@ -119,6 +136,101 @@ export const UserManagement = () => {
         variant: "destructive",
         title: "Error",
         description: error.message || "Failed to create user",
+      });
+    }
+  };
+
+  const handleEditProfile = (user: UserProfile) => {
+    setEditingUser(user);
+    setEditFirstName(user.first_name || '');
+    setEditLastName(user.last_name || '');
+    setEditEmail(user.email);
+    setIsEditProfileOpen(true);
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!editingUser) return;
+
+    try {
+      const response = await supabase.functions.invoke('update-user-profile', {
+        body: {
+          userId: editingUser.user_id,
+          firstName: editFirstName,
+          lastName: editLastName,
+          email: editEmail,
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to update profile');
+      }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to update profile');
+      }
+
+      await fetchUsers();
+      setIsEditProfileOpen(false);
+      setEditingUser(null);
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update profile",
+      });
+    }
+  };
+
+  const handleChangePassword = (user: UserProfile) => {
+    setEditingUser(user);
+    setNewPassword('');
+    setCurrentPassword('');
+    setIsChangePasswordOpen(true);
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!editingUser) return;
+
+    try {
+      const isOwnPassword = editingUser.user_id === profile?.user_id;
+      
+      const response = await supabase.functions.invoke('update-user-password', {
+        body: {
+          userId: editingUser.user_id,
+          newPassword: newPassword,
+          currentPassword: isOwnPassword && !isSuperAdmin ? currentPassword : undefined,
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to update password');
+      }
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to update password');
+      }
+
+      setIsChangePasswordOpen(false);
+      setEditingUser(null);
+      setNewPassword('');
+      setCurrentPassword('');
+      
+      toast({
+        title: "Success",
+        description: "Password updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update password",
       });
     }
   };
@@ -187,6 +299,26 @@ export const UserManagement = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={newUserFirstName}
+                  onChange={(e) => setNewUserFirstName(e.target.value)}
+                  placeholder="John"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={newUserLastName}
+                  onChange={(e) => setNewUserLastName(e.target.value)}
+                  placeholder="Doe"
+                />
+              </div>
+              <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -250,6 +382,7 @@ export const UserManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Created</TableHead>
@@ -259,7 +392,13 @@ export const UserManagement = () => {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.email}</TableCell>
+                  <TableCell className="font-medium">
+                    {user.first_name || user.last_name 
+                      ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                      : 'No name set'
+                    }
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={getRoleBadgeVariant(user.role)}>
                       <div className="flex items-center gap-1">
@@ -273,7 +412,25 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {user.user_id !== profile?.user_id && (
+                      {(user.user_id === profile?.user_id || isSuperAdmin) && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditProfile(user)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleChangePassword(user)}
+                          >
+                            Change Password
+                          </Button>
+                        </>
+                      )}
+                      {user.user_id !== profile?.user_id && isSuperAdmin && (
                         <Select
                           value={user.role}
                           onValueChange={(value: AppRole) => handleRoleChange(user.user_id, value)}
@@ -304,6 +461,104 @@ export const UserManagement = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="editFirstName">First Name</Label>
+              <Input
+                id="editFirstName"
+                type="text"
+                value={editFirstName}
+                onChange={(e) => setEditFirstName(e.target.value)}
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editLastName">Last Name</Label>
+              <Input
+                id="editLastName"
+                type="text"
+                value={editLastName}
+                onChange={(e) => setEditLastName(e.target.value)}
+                placeholder="Doe"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editEmail">Email</Label>
+              <Input
+                id="editEmail"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="user@example.com"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleUpdateProfile}>
+                Update Profile
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditProfileOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={isChangePasswordOpen} onOpenChange={setIsChangePasswordOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {editingUser?.user_id === profile?.user_id && !isSuperAdmin && (
+              <div>
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 8 characters)"
+                minLength={8}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleUpdatePassword}
+                disabled={
+                  !newPassword || 
+                  newPassword.length < 8 ||
+                  (editingUser?.user_id === profile?.user_id && !isSuperAdmin && !currentPassword)
+                }
+              >
+                Change Password
+              </Button>
+              <Button variant="outline" onClick={() => setIsChangePasswordOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

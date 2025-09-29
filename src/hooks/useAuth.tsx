@@ -8,6 +8,8 @@ interface Profile {
   user_id: string;
   email: string;
   role: AppRole;
+  first_name?: string;
+  last_name?: string;
   created_at: string;
   updated_at: string;
 }
