@@ -37,7 +37,7 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
               {waitGames.length > 0 ? (
                 <div
                   key={waitGames[0].id}
-                  className="flex-shrink-0 bg-warning/10 border border-warning/20 rounded-lg px-4 py-2 min-w-[140px]"
+                  className="flex-shrink-0 bg-gradient-to-br from-warning/20 to-warning/10 border-2 border-warning/40 rounded-xl px-8 py-6 min-w-[240px] shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
                 >
                   <div className="text-sm font-medium text-warning">{waitGames[0].name}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
