@@ -86,23 +86,21 @@ export const UserManagement = () => {
 
   const handleAddUser = async () => {
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUserEmail,
-        password: newUserPassword,
-        email_confirm: true
+      // Call our Edge Function instead of using admin API directly
+      const response = await supabase.functions.invoke('create-admin-user', {
+        body: {
+          email: newUserEmail,
+          password: newUserPassword,
+          role: newUserRole
+        }
       });
 
-      if (authError) throw authError;
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create user');
+      }
 
-      // Update the profile with the desired role
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ role: newUserRole })
-          .eq('user_id', authData.user.id);
-
-        if (profileError) throw profileError;
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to create user');
       }
 
       await fetchUsers();
