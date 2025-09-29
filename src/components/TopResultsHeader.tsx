@@ -28,7 +28,7 @@ const TopResultsHeader = () => {
 
   // Separate games into published with results and waiting games
   const publishedGames = games
-    .filter(game => game.status === 'published' && game.today_result !== null)
+    .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   
   const waitingGames = games
