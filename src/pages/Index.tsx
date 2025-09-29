@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
+import DateBanner from "@/components/DateBanner";
 import { useGames } from "@/hooks/useGames";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-bg.jpg";
@@ -18,6 +19,8 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
+      {/* Top Date Banner */}
+      <DateBanner />
 
       {/* Games Grid */}
       <section className="py-16 bg-background">
@@ -35,6 +38,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Middle Date Banner */}
+      <DateBanner />
 
       {/* Admin Login Button */}
       <section className="py-8 bg-card/50 border-t border-neon-cyan/20">
@@ -55,6 +61,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Bottom Date Banner */}
+      <DateBanner />
     </div>;
 };
 export default Index;
