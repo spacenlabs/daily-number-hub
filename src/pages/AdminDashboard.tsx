@@ -230,88 +230,95 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage games and results</p>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Manage games and results</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Logged in as:</span>
-                <Badge variant="outline">{profile?.email}</Badge>
-                <Badge variant="secondary">
-                  <div className="flex items-center gap-1">
-                    {profile?.role === 'super_admin' && <Shield className="h-3 w-3" />}
-                    {profile?.role === 'admin' && <Shield className="h-3 w-3" />}
-                    {profile?.role === 'viewer' && <Eye className="h-3 w-3" />}
-                    {profile?.role && ROLE_LABELS[profile.role]}
-                  </div>
-                </Badge>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground">Logged in as:</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="text-xs">{profile?.email}</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <div className="flex items-center gap-1">
+                      {profile?.role === 'super_admin' && <Shield className="h-3 w-3" />}
+                      {profile?.role === 'admin' && <Shield className="h-3 w-3" />}
+                      {profile?.role === 'viewer' && <Eye className="h-3 w-3" />}
+                      {profile?.role && ROLE_LABELS[profile.role]}
+                    </div>
+                  </Badge>
+                </div>
               </div>
-              <Link to="/">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Home className="h-4 w-4" />
-                  Public Site
+              <div className="flex flex-wrap items-center gap-2">
+                <Link to="/">
+                  <Button variant="outline" size="sm" className="gap-1 text-xs">
+                    <Home className="h-3 w-3" />
+                    <span className="hidden sm:inline">Public Site</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1 text-xs"
+                  onClick={handleLogoutAllDevices}
+                >
+                  <Smartphone className="h-3 w-3" />
+                  <span className="hidden md:inline">Log Out All Devices</span>
+                  <span className="md:hidden">All Devices</span>
                 </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={handleLogoutAllDevices}
-              >
-                <Smartphone className="h-4 w-4" />
-                Log Out All Devices
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={async () => {
-                  await signOut();
-                  toast.success("Logged out successfully");
-                  navigate('/');
-                }}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-1 text-xs"
+                  onClick={async () => {
+                    await signOut();
+                    toast.success("Logged out successfully");
+                    navigate('/');
+                  }}
+                >
+                  <LogOut className="h-3 w-3" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-5' : canManageContent ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : canManageContent ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-1`}>
             {canViewAnalytics && (
-              <TabsTrigger value="overview">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Overview
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">
+                <BarChart3 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Stats</span>
               </TabsTrigger>
             )}
             {canManageUsers && (
-              <TabsTrigger value="users">
-                <Users className="mr-2 h-4 w-4" />
+              <TabsTrigger value="users" className="text-xs sm:text-sm">
+                <Users className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Users
               </TabsTrigger>
             )}
             {canManageGames && (
-              <TabsTrigger value="games">
-                <GamepadIcon className="mr-2 h-4 w-4" />
+              <TabsTrigger value="games" className="text-xs sm:text-sm">
+                <GamepadIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Games
               </TabsTrigger>
             )}
             {canManageResults && (
-              <TabsTrigger value="results">
-                <Calendar className="mr-2 h-4 w-4" />
+              <TabsTrigger value="results" className="text-xs sm:text-sm">
+                <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Results
               </TabsTrigger>
             )}
             {canManageContent && (
-              <TabsTrigger value="website">
-                <FileText className="mr-2 h-4 w-4" />
-                Website Builder
+              <TabsTrigger value="website" className="text-xs sm:text-sm">
+                <FileText className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Website Builder</span>
+                <span className="sm:hidden">Website</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -319,7 +326,7 @@ const AdminDashboard = () => {
           {canViewAnalytics && (
             <TabsContent value="overview" className="space-y-6">
               {/* Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Games</CardTitle>
@@ -392,69 +399,73 @@ const AdminDashboard = () => {
           )}
 
           {canManageGames && (
-            <TabsContent value="games" className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Manage Games</h2>
-                <Button className="gap-2">
+            <TabsContent value="games" className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
+                <Button className="gap-2 w-full sm:w-auto">
                   <Plus className="h-4 w-4" />
                   Add New Game
                 </Button>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 {games.map((game) => (
                   <Card key={game.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <h3 className="font-semibold">{game.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Code: {game.short_code} • Scheduled: {formatTo12Hour(game.scheduled_time)}
+                    <CardContent className="p-3 sm:p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm sm:text-base truncate">{game.name}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Code: {game.short_code} • {formatTo12Hour(game.scheduled_time)}
                             </p>
                           </div>
-                          <Badge variant={game.enabled ? "default" : "secondary"}>
-                            {game.enabled ? "Active" : "Disabled"}
-                          </Badge>
-                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                            {game.status === "published" ? "Published" : "Pending"}
-                          </Badge>
+                          <div className="flex gap-2">
+                            <Badge variant={game.enabled ? "default" : "secondary"} className="text-xs">
+                              {game.enabled ? "Active" : "Disabled"}
+                            </Badge>
+                            <Badge variant={game.status === "published" ? "default" : "secondary"} className="text-xs">
+                              {game.status === "published" ? "Published" : "Pending"}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="text-sm text-muted-foreground">Yesterday's Result</div>
-                            <div className="text-lg font-bold">
-                              {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                          <div className="flex gap-4 w-full sm:w-auto">
+                            <div className="text-center flex-1 sm:flex-none">
+                              <div className="text-xs text-muted-foreground">Yesterday</div>
+                              <div className="text-sm sm:text-lg font-bold">
+                                {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                              </div>
+                              {canManageResults && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
+                                  className="mt-1 w-full sm:w-auto"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              )}
                             </div>
-                            {canManageResults && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
-                                className="mt-1"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-muted-foreground">Today's Result</div>
-                            <div className="text-xl font-bold">
-                              {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                            <div className="text-center flex-1 sm:flex-none">
+                              <div className="text-xs text-muted-foreground">Today</div>
+                              <div className="text-lg sm:text-xl font-bold">
+                                {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                              </div>
+                              {canManageResults && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openEditDialog(game.id, game.today_result)}
+                                  disabled={game.today_result === null || game.today_result === undefined}
+                                  className="mt-1 w-full sm:w-auto"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              )}
                             </div>
-                            {canManageResults && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => openEditDialog(game.id, game.today_result)}
-                                disabled={game.today_result === null || game.today_result === undefined}
-                                className="mt-1"
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -467,10 +478,10 @@ const AdminDashboard = () => {
           )}
 
           {canManageResults && (
-            <TabsContent value="results" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Manage Results</h2>
-              <div className="flex gap-2">
+            <TabsContent value="results" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <h2 className="text-lg sm:text-xl font-semibold">Manage Results</h2>
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
