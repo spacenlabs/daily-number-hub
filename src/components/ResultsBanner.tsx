@@ -35,21 +35,19 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
             
             <div className="flex gap-2 overflow-x-auto pb-2">
               {waitGames.length > 0 ? (
-                waitGames.map(game => (
-                  <div
-                    key={game.id}
-                    className="flex-shrink-0 bg-warning/10 border border-warning/20 rounded-lg px-4 py-2 min-w-[140px]"
-                  >
-                    <div className="text-sm font-medium text-warning">{game.short_code}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                      <Clock className="w-3 h-3" />
-                      {game.scheduled_time}
-                    </div>
-                    <div className="text-xs font-medium text-warning mt-1">
-                      {isGameUpcoming(game.scheduled_time) ? 'UPCOMING' : 'PENDING'}
-                    </div>
+                <div
+                  key={waitGames[0].id}
+                  className="flex-shrink-0 bg-warning/10 border border-warning/20 rounded-lg px-4 py-2 min-w-[140px]"
+                >
+                  <div className="text-sm font-medium text-warning">{waitGames[0].short_code}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                    <Clock className="w-3 h-3" />
+                    {waitGames[0].scheduled_time}
                   </div>
-                ))
+                  <div className="text-xs font-bold text-red-600 mt-1">
+                    WAIT
+                  </div>
+                </div>
               ) : (
                 <div className="text-muted-foreground text-sm italic">No games waiting</div>
               )}
