@@ -156,8 +156,6 @@ export const useGames = () => {
           table: 'games'
         },
         (payload) => {
-          console.log('Real-time update received:', payload);
-          
           // Update state directly instead of refetching to prevent loading flickers
           if (payload.eventType === 'UPDATE' && payload.new) {
             setGames(prevGames => 
@@ -175,13 +173,11 @@ export const useGames = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Real-time subscription status:', status);
         if (status === 'SUBSCRIBED') setIsRealtimeConnected(true);
         if (status === 'CLOSED' || status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') setIsRealtimeConnected(false);
       });
 
     return () => {
-      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, []);
