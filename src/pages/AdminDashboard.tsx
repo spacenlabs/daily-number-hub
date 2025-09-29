@@ -35,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const { games, loading, updateGameResult, editGameResult, editYesterdayGameResult } = useGames();
   const { 
     user, 
     profile, 
@@ -594,6 +595,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          )}
 
           {canManageContent && (
             <TabsContent value="website" className="space-y-6">
