@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import GameCard from "@/components/GameCard";
 import DateBanner from "@/components/DateBanner";
 import { ResultsBanner } from "@/components/ResultsBanner";
+import TopResultsHeader from "@/components/TopResultsHeader";
 import { useGames } from "@/hooks/useGames";
 import { ConfigurableSection, useSectionContent } from "@/components/ConfigurableSection";
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
@@ -22,6 +23,9 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
+      {/* Top Results Header */}
+      <TopResultsHeader />
+
       {/* Results Summary Banner */}
       <ResultsBanner games={games} />
 
