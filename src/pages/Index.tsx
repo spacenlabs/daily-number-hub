@@ -26,7 +26,7 @@ const Index = () => {
   }
   return <div className="min-h-screen bg-background">
       {/* Top Results Header */}
-      <TopResultsHeader />
+      <TopResultsHeader games={games} loading={loading} hasLoadedOnce={hasLoadedOnce} />
 
       {/* Results Summary Banner */}
       <ResultsBanner games={games} />

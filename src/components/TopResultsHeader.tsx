@@ -1,10 +1,15 @@
 import React, { useMemo } from 'react';
-import { useGames } from '@/hooks/useGames';
+import { Game } from '@/hooks/useGames';
 import { getDisplayStatus } from '@/lib/time-utils';
 import { format } from 'date-fns';
 
-const TopResultsHeader = React.memo(() => {
-  const { games, loading, hasLoadedOnce } = useGames();
+interface TopResultsHeaderProps {
+  games: Game[];
+  loading: boolean;
+  hasLoadedOnce: boolean;
+}
+
+const TopResultsHeader: React.FC<TopResultsHeaderProps> = React.memo(({ games, loading, hasLoadedOnce }) => {
   const currentDateTime = format(new Date(), 'dd MMMM yyyy h:mm aa');
 
   // Only show skeleton during initial load, not during updates
