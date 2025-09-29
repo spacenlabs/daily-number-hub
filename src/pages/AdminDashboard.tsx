@@ -179,14 +179,8 @@ const AdminDashboard = () => {
       toast.error('Failed to logout from all devices');
     }
   };
-  if (loading) {
-    return <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>;
-  }
+  // Don't show loading screen for games data in dashboard - it should only block on auth
+  // Games loading is handled gracefully within the UI components
   return <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="bg-card border-b shadow-sm">

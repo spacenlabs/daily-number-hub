@@ -15,14 +15,15 @@ export interface Game {
 
 export const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchGames = async () => {
     try {
-      // Only set loading true on initial fetch
-      if (games.length === 0) {
+      // Only set loading true on the very first fetch
+      if (isInitialLoad) {
         setLoading(true);
       }
       const { data, error } = await supabase
@@ -36,10 +37,17 @@ export const useGames = () => {
         ...game,
         status: game.status as 'published' | 'pending' | 'manual'
       })));
+      
+      // Mark initial load as complete
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
