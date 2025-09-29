@@ -146,7 +146,21 @@ export const useGames = () => {
         },
         (payload) => {
           console.log('Real-time update received:', payload);
-          fetchGames(); // Refetch when any change happens
+          
+          // Update state directly instead of refetching to prevent loading flickers
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            setGames(prevGames => 
+              prevGames.map(game => 
+                game.id === payload.new.id 
+                  ? { ...game, ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' }
+                  : game
+              )
+            );
+          } else if (payload.eventType === 'INSERT' && payload.new) {
+            setGames(prevGames => [...prevGames, { ...payload.new, status: payload.new.status as 'published' | 'pending' | 'manual' } as Game]);
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setGames(prevGames => prevGames.filter(game => game.id !== payload.old.id));
+          }
         }
       )
       .subscribe((status) => {

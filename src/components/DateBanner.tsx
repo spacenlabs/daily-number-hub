@@ -25,7 +25,7 @@ const DateBanner = () => {
     <div className="bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 border-y border-primary/30 py-3">
       <div className="container mx-auto px-4">
         <div className="text-center">
-          <span className="text-lg md:text-xl font-bold text-primary animate-pulse">
+          <span className="text-lg md:text-xl font-bold text-primary">
             📅 TODAY: {currentDate} 📅
           </span>
         </div>

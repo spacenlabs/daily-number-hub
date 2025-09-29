@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGames } from '@/hooks/useGames';
 import { getDisplayStatus } from '@/lib/time-utils';
-import { format } from 'date-fns';
 
 const TopResultsHeader = () => {
   const { games, loading } = useGames();
-  const currentDateTime = format(new Date(), 'dd MMMM yyyy h:mm aa');
+  const [currentDateTime, setCurrentDateTime] = useState('');
+
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      setCurrentDateTime(now.toLocaleDateString('en-US', options));
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) {
     return (
