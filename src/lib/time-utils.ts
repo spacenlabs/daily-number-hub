@@ -56,3 +56,23 @@ export const isGameOverdue = (scheduledTime: string): boolean => {
   
   return currentTime >= gameTimeInMinutes;
 };
+
+export const shouldShowWait = (scheduledTime: string, hasResult: boolean): boolean => {
+  // Show WAIT only if time has passed AND no result is published
+  return !hasResult && isGameOverdue(scheduledTime);
+};
+
+export const getDisplayStatus = (game: { scheduled_time: string; today_result?: number | null; status: string }) => {
+  const hasResult = game.today_result !== null && game.today_result !== undefined;
+  
+  if (hasResult) {
+    return { type: 'result', value: game.today_result };
+  }
+  
+  if (shouldShowWait(game.scheduled_time, hasResult)) {
+    return { type: 'wait', value: 'WAIT' };
+  }
+  
+  // Show scheduled time for upcoming games
+  return { type: 'scheduled', value: formatTo12Hour(game.scheduled_time) };
+};

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useGames } from '@/hooks/useGames';
+import { getDisplayStatus } from '@/lib/time-utils';
 import { format } from 'date-fns';
 
 const TopResultsHeader = () => {
@@ -42,19 +43,29 @@ const TopResultsHeader = () => {
 
         {/* Games Results */}
         <div className="space-y-8 mt-12">
-          {displayedGames.map((game, index) => (
-            <div key={game.id} className="space-y-2">
-              {/* Game Name */}
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-red-600 uppercase tracking-wider">
-                {game.name}
+          {displayedGames.map((game, index) => {
+            const displayStatus = getDisplayStatus(game);
+            
+            return (
+              <div key={game.id} className="space-y-2">
+                {/* Game Name */}
+                <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-red-600 uppercase tracking-wider">
+                  {game.name}
+                </div>
+                
+                {/* Result, WAIT, or Scheduled Time */}
+                <div className={`text-4xl md:text-5xl lg:text-6xl font-bold ${
+                  displayStatus.type === 'result' 
+                    ? 'text-green-600' 
+                    : displayStatus.type === 'wait'
+                    ? 'text-yellow-600'
+                    : 'text-blue-600'
+                }`}>
+                  {displayStatus.value}
+                </div>
               </div>
-              
-              {/* Result or Status */}
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-green-600">
-                {game.today_result !== null ? game.today_result : 'WAIT'}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
