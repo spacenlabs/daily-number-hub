@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { formatTo12Hour } from "@/lib/time-utils";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
+import { UserManagement } from "@/components/UserManagement";
+import { ROLE_LABELS } from "@/types/permissions";
 import { 
   Home, 
   Settings, 
@@ -15,7 +17,12 @@ import {
   Edit,
   Trash2,
   LogOut,
-  Clock
+  Clock,
+  Shield,
+  Eye,
+  GamepadIcon,
+  FileText,
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,8 +35,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const { games, loading, updateGameResult, editGameResult, editYesterdayGameResult } = useGames();
-  const { user, isAdmin, loading: authLoading, signOut, profile } = useAuth();
+  const { 
+    user, 
+    profile, 
+    loading: authLoading, 
+    signOut,
+    canManageUsers,
+    canManageGames,
+    canManageResults,
+    canManageContent,
+    canViewAnalytics,
+    hasRoleOrHigher
+  } = useAuth();
   const navigate = useNavigate();
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [isEditResultOpen, setIsEditResultOpen] = useState(false);
@@ -43,23 +60,13 @@ const AdminDashboard = () => {
 
   // Check authentication and admin privileges
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        toast.error("Please log in to access the admin dashboard");
-        navigate('/admin');
-        return;
-      }
-      
-      if (!isAdmin) {
-        toast.error("You don't have admin privileges to access this dashboard");
-        navigate('/');
-        return;
-      }
+    if (!authLoading && (!user || !profile?.role || !hasRoleOrHigher('viewer'))) {
+      navigate('/admin');
     }
-  }, [user, isAdmin, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate, hasRoleOrHigher]);
 
   // Show loading while checking authentication
-  if (authLoading || !user || !isAdmin) {
+  if (authLoading || !user || !hasRoleOrHigher('viewer')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -174,9 +181,18 @@ const AdminDashboard = () => {
               <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
               <p className="text-muted-foreground">Manage games and results</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-muted-foreground">
-                Welcome, {profile?.email}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Logged in as:</span>
+                <Badge variant="outline">{profile?.email}</Badge>
+                <Badge variant="secondary">
+                  <div className="flex items-center gap-1">
+                    {profile?.role === 'super_admin' && <Shield className="h-3 w-3" />}
+                    {profile?.role === 'admin' && <Shield className="h-3 w-3" />}
+                    {profile?.role === 'viewer' && <Eye className="h-3 w-3" />}
+                    {profile?.role && ROLE_LABELS[profile.role]}
+                  </div>
+                </Badge>
               </div>
               <Link to="/">
                 <Button variant="outline" size="sm" className="gap-2">
@@ -204,150 +220,191 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="games">Games</TabsTrigger>
-            <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="website">Website Builder</TabsTrigger>
+          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-5' : canManageContent ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            {canViewAnalytics && (
+              <TabsTrigger value="overview">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Overview
+              </TabsTrigger>
+            )}
+            {canManageUsers && (
+              <TabsTrigger value="users">
+                <Users className="mr-2 h-4 w-4" />
+                Users
+              </TabsTrigger>
+            )}
+            {canManageGames && (
+              <TabsTrigger value="games">
+                <GamepadIcon className="mr-2 h-4 w-4" />
+                Games
+              </TabsTrigger>
+            )}
+            {canManageResults && (
+              <TabsTrigger value="results">
+                <Calendar className="mr-2 h-4 w-4" />
+                Results
+              </TabsTrigger>
+            )}
+            {canManageContent && (
+              <TabsTrigger value="website">
+                <FileText className="mr-2 h-4 w-4" />
+                Website Builder
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Games</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{mockStats.totalGames}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Today's Results</CardTitle>
-                  <Badge variant="default">{mockStats.todayResults}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-success">{mockStats.todayResults}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Results</CardTitle>
-                  <Badge variant="secondary">{mockStats.pendingResults}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-warning">{mockStats.pendingResults}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{mockStats.totalPlays.toLocaleString()}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest system activities and updates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm">
-                    <Badge variant="default">Auto</Badge>
-                    <span>Daily Lottery result published: 45</span>
-                    <span className="text-muted-foreground ml-auto">2 hours ago</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <Badge variant="default">Auto</Badge>
-                    <span>Evening Draw result published: 82</span>
-                    <span className="text-muted-foreground ml-auto">6 hours ago</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="games" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Manage Games</h2>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add New Game
-              </Button>
-            </div>
-
-            <div className="grid gap-4">
-              {games.map((game) => (
-                <Card key={game.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h3 className="font-semibold">{game.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Code: {game.short_code} • Scheduled: {formatTo12Hour(game.scheduled_time)}
-                          </p>
-                        </div>
-                        <Badge variant={game.enabled ? "default" : "secondary"}>
-                          {game.enabled ? "Active" : "Disabled"}
-                        </Badge>
-                        <Badge variant={game.status === "published" ? "default" : "secondary"}>
-                          {game.status === "published" ? "Published" : "Pending"}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-sm text-muted-foreground">Yesterday's Result</div>
-                          <div className="text-lg font-bold">
-                            {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
-                            className="mt-1"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-muted-foreground">Today's Result</div>
-                          <div className="text-xl font-bold">
-                            {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openEditDialog(game.id, game.today_result)}
-                            disabled={game.today_result === null || game.today_result === undefined}
-                            className="mt-1"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+          {canViewAnalytics && (
+            <TabsContent value="overview" className="space-y-6">
+              {/* Stats Cards */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Games</CardTitle>
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{mockStats.totalGames}</div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </TabsContent>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Today's Results</CardTitle>
+                    <Badge variant="default">{mockStats.todayResults}</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-success">{mockStats.todayResults}</div>
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="results" className="space-y-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Pending Results</CardTitle>
+                    <Badge variant="secondary">{mockStats.pendingResults}</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-warning">{mockStats.pendingResults}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{mockStats.totalPlays.toLocaleString()}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                  <CardDescription>Latest system activities and updates</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 text-sm">
+                      <Badge variant="default">Auto</Badge>
+                      <span>Daily Lottery result published: 45</span>
+                      <span className="text-muted-foreground ml-auto">2 hours ago</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <Badge variant="default">Auto</Badge>
+                      <span>Evening Draw result published: 82</span>
+                      <span className="text-muted-foreground ml-auto">6 hours ago</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          {canManageUsers && (
+            <TabsContent value="users" className="space-y-6">
+              <UserManagement />
+            </TabsContent>
+          )}
+
+          {canManageGames && (
+            <TabsContent value="games" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Manage Games</h2>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Game
+                </Button>
+              </div>
+
+              <div className="grid gap-4">
+                {games.map((game) => (
+                  <Card key={game.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <h3 className="font-semibold">{game.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Code: {game.short_code} • Scheduled: {formatTo12Hour(game.scheduled_time)}
+                            </p>
+                          </div>
+                          <Badge variant={game.enabled ? "default" : "secondary"}>
+                            {game.enabled ? "Active" : "Disabled"}
+                          </Badge>
+                          <Badge variant={game.status === "published" ? "default" : "secondary"}>
+                            {game.status === "published" ? "Published" : "Pending"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-sm text-muted-foreground">Yesterday's Result</div>
+                            <div className="text-lg font-bold">
+                              {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                            </div>
+                            {canManageResults && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)}
+                                className="mt-1"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-muted-foreground">Today's Result</div>
+                            <div className="text-xl font-bold">
+                              {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                            </div>
+                            {canManageResults && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openEditDialog(game.id, game.today_result)}
+                                disabled={game.today_result === null || game.today_result === undefined}
+                                className="mt-1"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          )}
+
+          {canManageResults && (
+            <TabsContent value="results" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Manage Results</h2>
               <div className="flex gap-2">
@@ -538,9 +595,11 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="website" className="space-y-6">
-            <WebsiteBuilder />
-          </TabsContent>
+          {canManageContent && (
+            <TabsContent value="website" className="space-y-6">
+              <WebsiteBuilder />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
