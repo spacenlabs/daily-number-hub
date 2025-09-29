@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { Clock, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +15,7 @@ interface GameCardProps {
   status: "published" | "pending" | "manual";
 }
 
-const GameCard = ({ 
+const GameCard = React.memo(({ 
   id, 
   name, 
   shortCode, 
@@ -104,6 +105,6 @@ const GameCard = ({
       </Card>
     </Link>
   );
-};
+});
 
 export default GameCard;
