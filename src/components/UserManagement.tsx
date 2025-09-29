@@ -25,7 +25,7 @@ interface UserProfile {
 }
 
 export const UserManagement = () => {
-  const { canManageUsers, profile, isSuperAdmin } = useAuth();
+  const { canManageUsers, profile, isSuperAdmin, session } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +107,8 @@ export const UserManagement = () => {
           role: newUserRole,
           firstName: newUserFirstName,
           lastName: newUserLastName
-        }
+        },
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       });
 
       if (response.error) {
@@ -158,7 +159,8 @@ export const UserManagement = () => {
           firstName: editFirstName,
           lastName: editLastName,
           email: editEmail,
-        }
+        },
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       });
 
       if (response.error) {
@@ -205,7 +207,8 @@ export const UserManagement = () => {
           userId: editingUser.user_id,
           newPassword: newPassword,
           currentPassword: isOwnPassword && !isSuperAdmin ? currentPassword : undefined,
-        }
+        },
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       });
 
       if (response.error) {
