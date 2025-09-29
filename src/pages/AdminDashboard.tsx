@@ -59,12 +59,31 @@ const AdminDashboard = () => {
   const [editResult, setEditResult] = useState("");
   const [editYesterdayResult, setEditYesterdayResult] = useState("");
 
-  // Check authentication and admin privileges
+  // Check authentication and permissions
   useEffect(() => {
     if (!authLoading && (!user || !profile?.role || !hasRoleOrHigher('viewer'))) {
       navigate('/admin');
     }
   }, [user, profile, authLoading, navigate, hasRoleOrHigher]);
+
+  // Ensure a valid default tab is selected based on permissions
+  useEffect(() => {
+    const defaultTab = canViewAnalytics
+      ? 'overview'
+      : canManageResults
+        ? 'results'
+        : canManageGames
+          ? 'games'
+          : canManageContent
+            ? 'website'
+            : canManageUsers
+              ? 'users'
+              : 'overview';
+
+    if (activeTab !== defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [canViewAnalytics, canManageUsers, canManageGames, canManageResults, canManageContent, activeTab]);
 
   // Show loading while checking authentication
   if (authLoading || !user || !hasRoleOrHigher('viewer')) {
