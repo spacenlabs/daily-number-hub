@@ -9,7 +9,7 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({
   games
 }) => {
   const waitGames = games.filter(game => {
-    const hasNoResult = !game.today_result;
+    const hasNoResult = game.today_result === null || game.today_result === undefined;
     const isPending = game.status === 'pending';
     const isUpcoming = isGameUpcoming(game.scheduled_time);
     const isOverdue = isGameOverdue(game.scheduled_time);

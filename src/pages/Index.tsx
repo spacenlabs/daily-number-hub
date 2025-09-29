@@ -44,7 +44,18 @@ const Index = () => {
           </div>
 
           <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 max-w-6xl mx-auto">
-            {games.map(game => <GameCard key={game.id} id={game.id} name={game.name} shortCode={game.short_code} scheduledTime={game.scheduled_time} todayResult={game.today_result || undefined} yesterdayResult={game.yesterday_result || undefined} status={game.status} />)}
+            {games.map(game => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                name={game.name}
+                shortCode={game.short_code}
+                scheduledTime={game.scheduled_time}
+                todayResult={game.today_result ?? undefined}
+                yesterdayResult={game.yesterday_result ?? undefined}
+                status={game.status}
+              />
+            ))}
           </div>
         </div>
       </section>
