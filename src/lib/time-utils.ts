@@ -69,10 +69,6 @@ export const getDisplayStatus = (game: { scheduled_time: string; today_result?: 
     return { type: 'result', value: game.today_result };
   }
   
-  if (shouldShowWait(game.scheduled_time, hasResult)) {
-    return { type: 'wait', value: 'WAIT' };
-  }
-  
-  // Show scheduled time for upcoming games
-  return { type: 'scheduled', value: formatTo12Hour(game.scheduled_time) };
+  // Always show WAIT if no result, regardless of time
+  return { type: 'wait', value: 'WAIT' };
 };
