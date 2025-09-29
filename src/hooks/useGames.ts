@@ -16,26 +16,39 @@ export interface Game {
 export const useGames = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGames = async () => {
     try {
-      setLoading(true);
+      // Only show loading spinner for the very first fetch
+      if (!hasLoadedOnce) {
+        setLoading(true);
+      }
+      
       const { data, error } = await supabase
         .from('games')
-        .select('*')
+        .select('id, name, short_code, scheduled_time, today_result, yesterday_result, status, enabled, updated_at')
         .order('scheduled_time');
 
       if (error) throw error;
 
-      setGames((data || []).map(game => ({
+      const sortedGames = (data || []).map(game => ({
         ...game,
         status: game.status as 'published' | 'pending' | 'manual'
-      })));
+      }));
+
+      setGames(sortedGames);
+      
+      if (!hasLoadedOnce) {
+        setHasLoadedOnce(true);
+        setLoading(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
-    } finally {
-      setLoading(false);
+      if (!hasLoadedOnce) {
+        setLoading(false);
+      }
     }
   };
 
@@ -145,7 +158,44 @@ export const useGames = () => {
         },
         (payload) => {
           console.log('Real-time update received:', payload);
-          fetchGames(); // Refetch when any change happens
+          
+          // Handle different real-time events without refetching everything
+          if (payload.eventType === 'UPDATE') {
+            const updatedGame = payload.new as Game;
+            setGames(prevGames => {
+              const updatedGames = prevGames.map(game => {
+                if (game.id === updatedGame.id) {
+                  // Only update if relevant fields actually changed
+                  const hasChanges = 
+                    game.status !== updatedGame.status ||
+                    game.today_result !== updatedGame.today_result ||
+                    game.yesterday_result !== updatedGame.yesterday_result ||
+                    game.enabled !== updatedGame.enabled ||
+                    game.updated_at !== updatedGame.updated_at;
+                  
+                  return hasChanges ? { ...game, ...updatedGame } : game;
+                }
+                return game;
+              });
+              
+              // Keep stable sort order by scheduled_time
+              return updatedGames.sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+            });
+          } else if (payload.eventType === 'INSERT') {
+            const newGame = payload.new as Game;
+            setGames(prevGames => {
+              const gameExists = prevGames.some(game => game.id === newGame.id);
+              if (!gameExists) {
+                return [...prevGames, newGame].sort((a, b) => a.scheduled_time.localeCompare(b.scheduled_time));
+              }
+              return prevGames;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old?.id;
+            if (deletedId) {
+              setGames(prevGames => prevGames.filter(game => game.id !== deletedId));
+            }
+          }
         }
       )
       .subscribe((status) => {
@@ -161,6 +211,7 @@ export const useGames = () => {
   return {
     games,
     loading,
+    hasLoadedOnce,
     error,
     updateGameResult,
     editGameResult,

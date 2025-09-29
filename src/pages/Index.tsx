@@ -10,11 +10,13 @@ import { ConfigurableSection, useSectionContent } from "@/components/Configurabl
 import { useWebsiteConfigContext } from "@/contexts/WebsiteConfigProvider";
 import heroImage from "@/assets/hero-bg.jpg";
 const Index = () => {
-  const { games, loading } = useGames();
+  const { games, loading, hasLoadedOnce } = useGames();
   const { config } = useWebsiteConfigContext();
   const { content: footerContent } = useSectionContent('footer', '/');
   const navigate = useNavigate();
-  if (loading) {
+  
+  // Only show full-screen loader for the very first load
+  if (loading && !hasLoadedOnce) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
