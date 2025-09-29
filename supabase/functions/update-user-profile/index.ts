@@ -24,14 +24,11 @@ const handler = async (req: Request): Promise<Response> => {
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
-    console.log('Environment variables loaded');
-    
-    // Create admin client for operations
+    // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Create regular client for auth verification
+    // Get authorization header and extract token
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       console.error('No authorization header provided');
@@ -41,14 +38,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log('Authorization header found');
+    // Extract token from Bearer header
+    const token = authHeader.replace('Bearer ', '');
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { authorization: authHeader } }
-    });
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Verify the token and get user using admin client
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       console.error('Authentication failed:', authError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -63,7 +57,6 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Request body parsed for user:', userId);
 
     // Check if user has permission to update this profile
-    // Users can update their own profile, super_admins can update any profile
     const { data: currentUserProfile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
