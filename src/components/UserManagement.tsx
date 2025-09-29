@@ -212,11 +212,13 @@ export const UserManagement = () => {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || 'Failed to update password');
+        const serverError = (response.data && (response.data as any).error) || (response.data as any)?.message || null;
+        throw new Error(serverError || response.error.message || 'Failed to update password');
       }
 
       if (!response.data?.success) {
-        throw new Error(response.data?.error || 'Failed to update password');
+        const serverError = (response.data as any)?.error || (response.data as any)?.message;
+        throw new Error(serverError || 'Failed to update password');
       }
 
       setIsChangePasswordOpen(false);
