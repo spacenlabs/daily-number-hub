@@ -71,7 +71,7 @@ const GameCard = ({
                   Yesterday
                 </div>
                 <div className="bg-accent/10 border border-accent/30 rounded-md sm:rounded-lg py-1.5 sm:py-2 px-1 min-h-[35px] sm:min-h-[45px] flex items-center justify-center">
-                  {yesterdayResult !== undefined ? (
+                  {yesterdayResult !== undefined && yesterdayResult !== null ? (
                     <span className="text-sm sm:text-lg font-bold text-accent">
                       {yesterdayResult.toString().padStart(2, '0')}
                     </span>
@@ -87,7 +87,7 @@ const GameCard = ({
                   Today
                 </div>
                 <div className="bg-primary/10 border border-primary/40 rounded-md sm:rounded-lg py-1.5 sm:py-2 px-1 min-h-[35px] sm:min-h-[45px] flex items-center justify-center">
-                  {todayResult !== undefined ? (
+                  {todayResult !== undefined && todayResult !== null ? (
                     <span className="text-sm sm:text-lg font-bold text-primary">
                       {todayResult.toString().padStart(2, '0')}
                     </span>
