@@ -414,7 +414,7 @@ const AdminDashboard = () => {
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
                 <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
                   <DialogTrigger asChild>
-                    <Button className="gap-2 w-full sm:w-auto">
+                    <Button className="gap-2 w-full sm:w-auto" onClick={() => setIsAddGameOpen(true)}>
                       <Plus className="h-4 w-4" />
                       Add New Game
                     </Button>
