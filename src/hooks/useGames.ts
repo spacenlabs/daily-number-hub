@@ -131,6 +131,73 @@ export const useGames = () => {
     }
   };
 
+  const addGame = async (game: { name: string; short_code: string; scheduled_time: string; enabled: boolean }) => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .insert([game]);
+
+      if (error) throw error;
+
+      await fetchGames();
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to add game' 
+      };
+    }
+  };
+
+  const updateGame = async (gameId: string, updates: { name?: string; short_code?: string; scheduled_time?: string; enabled?: boolean }) => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update({ 
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', gameId);
+
+      if (error) throw error;
+
+      // Update local state
+      setGames(prevGames => 
+        prevGames.map(game => 
+          game.id === gameId 
+            ? { ...game, ...updates }
+            : game
+        )
+      );
+
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to update game' 
+      };
+    }
+  };
+
+  const deleteGame = async (gameId: string) => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .delete()
+        .eq('id', gameId);
+
+      if (error) throw error;
+
+      setGames(prevGames => prevGames.filter(game => game.id !== gameId));
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to delete game' 
+      };
+    }
+  };
+
   useEffect(() => {
     fetchGames();
 
@@ -169,6 +236,9 @@ export const useGames = () => {
     updateGameResult,
     editGameResult,
     editYesterdayGameResult,
+    addGame,
+    updateGame,
+    deleteGame,
     refetch: fetchGames
   };
 };

@@ -25,7 +25,10 @@ const AdminDashboard = () => {
     loading,
     updateGameResult,
     editGameResult,
-    editYesterdayGameResult
+    editYesterdayGameResult,
+    addGame,
+    updateGame,
+    deleteGame
   } = useGames();
   const {
     user,
@@ -43,12 +46,27 @@ const AdminDashboard = () => {
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [isEditResultOpen, setIsEditResultOpen] = useState(false);
   const [isEditYesterdayResultOpen, setIsEditYesterdayResultOpen] = useState(false);
+  const [isAddGameOpen, setIsAddGameOpen] = useState(false);
+  const [isEditGameOpen, setIsEditGameOpen] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState("");
   const [editingGameId, setEditingGameId] = useState("");
   const [editingYesterdayGameId, setEditingYesterdayGameId] = useState("");
   const [newResult, setNewResult] = useState("");
   const [editResult, setEditResult] = useState("");
   const [editYesterdayResult, setEditYesterdayResult] = useState("");
+  const [gameForm, setGameForm] = useState({
+    name: "",
+    short_code: "",
+    scheduled_time: "",
+    enabled: true
+  });
+  const [editGameForm, setEditGameForm] = useState({
+    id: "",
+    name: "",
+    short_code: "",
+    scheduled_time: "",
+    enabled: true
+  });
 
   // Check authentication and permissions
   useEffect(() => {
@@ -153,6 +171,62 @@ const AdminDashboard = () => {
     setEditingYesterdayGameId(gameId);
     setEditYesterdayResult(currentResult?.toString() || "");
     setIsEditYesterdayResultOpen(true);
+  };
+
+  const handleAddGame = async () => {
+    if (!gameForm.name || !gameForm.short_code || !gameForm.scheduled_time) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const result = await addGame(gameForm);
+    if (result.success) {
+      toast.success("Game added successfully!");
+      setIsAddGameOpen(false);
+      setGameForm({ name: "", short_code: "", scheduled_time: "", enabled: true });
+    } else {
+      toast.error(result.error || "Failed to add game");
+    }
+  };
+
+  const openEditGameDialog = (game: typeof games[0]) => {
+    setEditGameForm({
+      id: game.id,
+      name: game.name,
+      short_code: game.short_code,
+      scheduled_time: game.scheduled_time,
+      enabled: game.enabled
+    });
+    setIsEditGameOpen(true);
+  };
+
+  const handleEditGame = async () => {
+    if (!editGameForm.name || !editGameForm.short_code || !editGameForm.scheduled_time) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const { id, ...updates } = editGameForm;
+    const result = await updateGame(id, updates);
+    if (result.success) {
+      toast.success("Game updated successfully!");
+      setIsEditGameOpen(false);
+    } else {
+      toast.error(result.error || "Failed to update game");
+    }
+  };
+
+  const handleDeleteGame = async (gameId: string, gameName: string) => {
+    if (!confirm(`Are you sure you want to delete "${gameName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    const result = await deleteGame(gameId);
+    if (result.success) {
+      toast.success("Game deleted successfully!");
+    } else {
+      toast.error(result.error || "Failed to delete game");
+    }
   };
   const handleLogoutAllDevices = async () => {
     try {
@@ -338,10 +412,40 @@ const AdminDashboard = () => {
           {canManageGames && <TabsContent value="games" className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
-                <Button className="gap-2 w-full sm:w-auto">
-                  <Plus className="h-4 w-4" />
-                  Add New Game
-                </Button>
+                <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 w-full sm:w-auto">
+                      <Plus className="h-4 w-4" />
+                      Add New Game
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Game</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="game-name">Game Name *</Label>
+                        <Input id="game-name" value={gameForm.name} onChange={(e) => setGameForm({ ...gameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
+                      </div>
+                      <div>
+                        <Label htmlFor="short-code">Short Code *</Label>
+                        <Input id="short-code" value={gameForm.short_code} onChange={(e) => setGameForm({ ...gameForm, short_code: e.target.value })} placeholder="e.g., DL" />
+                      </div>
+                      <div>
+                        <Label htmlFor="scheduled-time">Scheduled Time (24-hour format) *</Label>
+                        <Input id="scheduled-time" type="time" value={gameForm.scheduled_time} onChange={(e) => setGameForm({ ...gameForm, scheduled_time: e.target.value })} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id="enabled" checked={gameForm.enabled} onChange={(e) => setGameForm({ ...gameForm, enabled: e.target.checked })} className="h-4 w-4" />
+                        <Label htmlFor="enabled">Enable game</Label>
+                      </div>
+                      <Button onClick={handleAddGame} className="w-full">
+                        Add Game
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="grid gap-3 sm:gap-4">
@@ -385,9 +489,16 @@ const AdminDashboard = () => {
                                 </Button>}
                             </div>
                           </div>
-                          <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2 w-full sm:w-auto">
+                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => openEditGameDialog(game)}>
+                              <Edit className="h-3 w-3" />
+                              <span className="ml-1">Edit</span>
+                            </Button>
+                            <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" onClick={() => handleDeleteGame(game.id, game.name)}>
+                              <Trash2 className="h-3 w-3" />
+                              <span className="ml-1">Delete</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -490,6 +601,41 @@ const AdminDashboard = () => {
                         </Button>
                         <Button onClick={handleEditYesterdayResult}>
                           Update Yesterday Result
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Edit Game Dialog */}
+                <Dialog open={isEditGameOpen} onOpenChange={setIsEditGameOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Game</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-game-name">Game Name *</Label>
+                        <Input id="edit-game-name" value={editGameForm.name} onChange={(e) => setEditGameForm({ ...editGameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-short-code">Short Code *</Label>
+                        <Input id="edit-short-code" value={editGameForm.short_code} onChange={(e) => setEditGameForm({ ...editGameForm, short_code: e.target.value })} placeholder="e.g., DL" />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-scheduled-time">Scheduled Time (24-hour format) *</Label>
+                        <Input id="edit-scheduled-time" type="time" value={editGameForm.scheduled_time} onChange={(e) => setEditGameForm({ ...editGameForm, scheduled_time: e.target.value })} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id="edit-enabled" checked={editGameForm.enabled} onChange={(e) => setEditGameForm({ ...editGameForm, enabled: e.target.checked })} className="h-4 w-4" />
+                        <Label htmlFor="edit-enabled">Enable game</Label>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsEditGameOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleEditGame}>
+                          Update Game
                         </Button>
                       </div>
                     </div>
