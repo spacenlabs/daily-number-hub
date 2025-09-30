@@ -418,7 +418,7 @@ const AdminDashboard = () => {
                             <SelectValue placeholder="Choose a game" />
                           </SelectTrigger>
                           <SelectContent>
-                            {games.filter(game => game.status === "pending").map(game => <SelectItem key={game.id} value={game.id}>
+                            {games.filter(game => game.enabled).map(game => <SelectItem key={game.id} value={game.id}>
                                 {game.name} ({game.short_code}) - {formatTo12Hour(game.scheduled_time)}
                               </SelectItem>)}
                           </SelectContent>
