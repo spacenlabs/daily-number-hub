@@ -113,7 +113,7 @@ const GameDetail = () => {
                     <div key={result.id} className="p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-8">
                         <div className="text-sm w-32">
-                          {format(new Date(result.result_date), 'dd-MM-yy')}
+                          {format(new Date(result.result_date), 'dd/MM/yyyy')}
                         </div>
                         <div className="text-lg font-medium">
                           {result.result}
