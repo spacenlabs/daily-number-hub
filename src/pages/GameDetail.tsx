@@ -101,26 +101,38 @@ const GameDetail = () => {
           </Card>
 
           {/* Results List */}
-          <Card>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
               {results.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
                   No results history available for this game yet.
                 </div>
               ) : (
-                <div className="divide-y">
-                  {results.map((result) => (
-                    <div key={result.id} className="p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-8">
-                        <div className="text-sm w-32">
-                          {format(new Date(result.result_date), 'dd/MM/yyyy')}
-                        </div>
-                        <div className="text-lg font-medium">
-                          {result.result.toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr>
+                        <th className="bg-accent text-accent-foreground py-4 px-6 text-left font-bold text-lg border-r border-background">
+                          Date
+                        </th>
+                        <th className="bg-accent text-accent-foreground py-4 px-6 text-left font-bold text-lg">
+                          Number
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((result) => (
+                        <tr key={result.id} className="border-t border-border">
+                          <td className="py-4 px-6 text-accent font-medium border-r border-border">
+                            {format(new Date(result.result_date), 'dd/MM/yyyy')}
+                          </td>
+                          <td className="py-4 px-6 text-primary font-bold text-lg">
+                            {result.result.toString().padStart(2, '0')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>
