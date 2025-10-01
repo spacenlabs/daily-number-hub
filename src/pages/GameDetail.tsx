@@ -91,10 +91,6 @@ const GameDetail = () => {
                     <Calendar className="h-4 w-4" />
                     Jump to Date
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Export CSV
-                  </Button>
                 </div>
               </CardTitle>
             </CardHeader>
