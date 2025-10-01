@@ -112,10 +112,10 @@ const GameDetail = () => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr>
-                        <th className="bg-accent text-accent-foreground py-4 px-6 text-left font-bold text-lg border-r border-background">
+                        <th className="bg-accent text-accent-foreground py-2 px-6 text-center font-bold text-lg border-r border-background">
                           Date
                         </th>
-                        <th className="bg-accent text-accent-foreground py-4 px-6 text-left font-bold text-lg">
+                        <th className="bg-accent text-accent-foreground py-2 px-6 text-center font-bold text-lg">
                           Number
                         </th>
                       </tr>
@@ -123,10 +123,10 @@ const GameDetail = () => {
                     <tbody>
                       {results.map((result) => (
                         <tr key={result.id} className="border-t border-border">
-                          <td className="py-4 px-6 text-accent font-medium border-r border-border">
+                          <td className="py-2 px-6 text-accent font-medium text-center border-r border-border">
                             {format(new Date(result.result_date), 'dd/MM/yyyy')}
                           </td>
-                          <td className="py-4 px-6 text-primary font-bold text-lg">
+                          <td className="py-2 px-6 text-primary font-bold text-lg text-center">
                             {result.result.toString().padStart(2, '0')}
                           </td>
                         </tr>
