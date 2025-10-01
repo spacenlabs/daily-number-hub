@@ -24,7 +24,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
   const downloadTemplate = () => {
     const headers = ["game_name", "date", "result"];
     const sampleData = games.slice(0, 2).map(game => 
-      `${game.name},2024-01-01,45`
+      `${game.name},01/01/2024,45`
     );
     const csv = [headers.join(","), ...sampleData].join("\n");
     
@@ -51,12 +51,20 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
         throw new Error(`Invalid CSV format at line ${i + 1}`);
       }
       
-      const [game_name, date, resultStr] = parts.map(p => p.trim());
+      const [game_name, dateStr, resultStr] = parts.map(p => p.trim());
       const result = parseInt(resultStr);
       
       if (isNaN(result) || result < 0 || result > 99) {
         throw new Error(`Invalid result at line ${i + 1}: must be 0-99`);
       }
+      
+      // Convert DD/MM/YYYY to YYYY-MM-DD
+      const dateParts = dateStr.split("/");
+      if (dateParts.length !== 3) {
+        throw new Error(`Invalid date format at line ${i + 1}: expected DD/MM/YYYY`);
+      }
+      const [day, month, year] = dateParts;
+      const date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       
       data.push({ game_name, date, result });
     }
