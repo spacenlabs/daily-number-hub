@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.logout-all-devices]
 verify_jwt = false
+
+[functions.bulk-results-upload]
+verify_jwt = false

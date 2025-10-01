@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { formatTo12Hour } from "@/lib/time-utils";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { UserManagement } from "@/components/UserManagement";
+import { BulkResultsUpload } from "@/components/BulkResultsUpload";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone } from "lucide-react";
@@ -660,6 +661,8 @@ const AdminDashboard = () => {
                  {/* Edit Game Dialog moved to Games tab */}
               </div>
             </div>
+            
+            <BulkResultsUpload games={games.map(g => ({ id: g.id, name: g.name, short_code: g.short_code }))} />
             
             <Card>
               <CardHeader>
