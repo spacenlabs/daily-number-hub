@@ -22,9 +22,9 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
   };
 
   const downloadTemplate = () => {
-    const headers = ["game_name", "date", "result"];
+    const headers = ["date", "game_name", "result"];
     const sampleData = games.slice(0, 2).map(game => 
-      `${game.name},01/01/2024,45`
+      `01/01/2024,${game.name},45`
     );
     const csv = [headers.join(","), ...sampleData].join("\n");
     
@@ -48,10 +48,10 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
       
       const parts = line.split(",");
       if (parts.length !== 3) {
-        throw new Error(`Invalid CSV format at line ${i + 1}: Expected 3 columns (game_name, date, result)`);
+        throw new Error(`Invalid CSV format at line ${i + 1}: Expected 3 columns (date, game_name, result)`);
       }
       
-      const [game_name, dateStr, resultStr] = parts.map(p => p.trim());
+      const [dateStr, game_name, resultStr] = parts.map(p => p.trim());
       
       // Validate game name
       if (!game_name || game_name.length === 0) {
@@ -169,7 +169,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
           Bulk Results History Upload
         </CardTitle>
         <CardDescription>
-          Upload historical results in CSV format. CSV should have columns: game_name, date (DD/MM/YYYY), result (0-99)
+          Upload historical results in CSV format. CSV should have columns: date (DD/MM/YYYY), game_name, result (0-99)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
