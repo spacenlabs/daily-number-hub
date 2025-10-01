@@ -48,23 +48,56 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
       
       const parts = line.split(",");
       if (parts.length !== 3) {
-        throw new Error(`Invalid CSV format at line ${i + 1}`);
+        throw new Error(`Invalid CSV format at line ${i + 1}: Expected 3 columns (game_name, date, result)`);
       }
       
       const [game_name, dateStr, resultStr] = parts.map(p => p.trim());
-      const result = parseInt(resultStr);
       
-      if (isNaN(result) || result < 0 || result > 99) {
-        throw new Error(`Invalid result at line ${i + 1}: must be 0-99`);
+      // Validate game name
+      if (!game_name || game_name.length === 0) {
+        throw new Error(`Invalid game name at line ${i + 1}: Cannot be empty`);
       }
       
-      // Convert DD/MM/YYYY to YYYY-MM-DD
+      // Validate result
+      const result = parseInt(resultStr);
+      if (isNaN(result) || result < 0 || result > 99) {
+        throw new Error(`Invalid result at line ${i + 1}: Must be a number between 0-99`);
+      }
+      
+      // Validate and convert DD/MM/YYYY to YYYY-MM-DD
       const dateParts = dateStr.split("/");
       if (dateParts.length !== 3) {
-        throw new Error(`Invalid date format at line ${i + 1}: expected DD/MM/YYYY`);
+        throw new Error(`Invalid date format at line ${i + 1}: Expected DD/MM/YYYY (e.g., 13/09/2025)`);
       }
-      const [day, month, year] = dateParts;
-      const date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]);
+      const year = parseInt(dateParts[2]);
+      
+      // Validate date components
+      if (isNaN(day) || isNaN(month) || isNaN(year)) {
+        throw new Error(`Invalid date at line ${i + 1}: Day, month, and year must be numbers`);
+      }
+      
+      if (day < 1 || day > 31) {
+        throw new Error(`Invalid day at line ${i + 1}: Must be between 1-31`);
+      }
+      
+      if (month < 1 || month > 12) {
+        throw new Error(`Invalid month at line ${i + 1}: Must be between 1-12`);
+      }
+      
+      if (year < 1900 || year > 2100) {
+        throw new Error(`Invalid year at line ${i + 1}: Must be between 1900-2100`);
+      }
+      
+      // Validate the date is actually valid (e.g., not 31/02/2025)
+      const testDate = new Date(year, month - 1, day);
+      if (testDate.getDate() !== day || testDate.getMonth() !== month - 1 || testDate.getFullYear() !== year) {
+        throw new Error(`Invalid date at line ${i + 1}: ${dateStr} is not a valid calendar date`);
+      }
+      
+      const date = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
       
       data.push({ game_name, date, result });
     }
