@@ -41,6 +41,50 @@ export type Database = {
         }
         Relationships: []
       }
+      game_results_history: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          mode: string | null
+          note: string | null
+          published_at: string | null
+          result: number
+          result_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          mode?: string | null
+          note?: string | null
+          published_at?: string | null
+          result: number
+          result_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          mode?: string | null
+          note?: string | null
+          published_at?: string | null
+          result?: number
+          result_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_results_history_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string

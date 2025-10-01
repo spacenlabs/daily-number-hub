@@ -72,20 +72,25 @@ Deno.serve(async (req) => {
 
     for (const update of updates) {
       try {
-        // For historical data, we'll update yesterday_result
+        // Insert into game_results_history table with upsert
         const { error } = await supabase
-          .from('games')
-          .update({ 
-            yesterday_result: update.result,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', update.game_id);
+          .from('game_results_history')
+          .upsert({ 
+            game_id: update.game_id,
+            result_date: update.date,
+            result: update.result,
+            mode: 'manual',
+            published_at: new Date().toISOString()
+          }, {
+            onConflict: 'game_id,result_date'
+          });
 
         if (error) {
-          errors.push(`Failed to update game ${update.game_id}: ${error.message}`);
-          console.error('Update error:', error);
+          errors.push(`Failed to insert result for game ${update.game_id} on ${update.date}: ${error.message}`);
+          console.error('Insert error:', error);
         } else {
           successCount++;
+          console.log(`Inserted result for game ${update.game_id} on ${update.date}: ${update.result}`);
         }
       } catch (error) {
         errors.push(`Error processing game ${update.game_id}: ${error.message}`);
