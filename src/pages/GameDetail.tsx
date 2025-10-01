@@ -86,10 +86,7 @@ const GameDetail = () => {
                 Results History
                 <div className="flex gap-2">
                   
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Export CSV
-                  </Button>
+                  
                 </div>
               </CardTitle>
             </CardHeader>
