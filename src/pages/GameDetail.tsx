@@ -111,32 +111,13 @@ const GameDetail = () => {
                 <div className="divide-y">
                   {results.map((result) => (
                     <div key={result.id} className="p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="text-sm text-muted-foreground w-24">
-                            {format(new Date(result.result_date), 'yyyy-MM-dd')}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="bg-result-bg border-2 border-result-border rounded-lg px-4 py-2 min-w-[60px] text-center">
-                              <span className="text-2xl font-bold text-result-text">
-                                {result.result}
-                              </span>
-                            </div>
-                            <div className="text-sm">
-                              <div className="font-medium">
-                                Published {result.published_at 
-                                  ? format(new Date(result.published_at), 'HH:mm')
-                                  : 'N/A'}
-                              </div>
-                              {result.note && (
-                                <div className="text-muted-foreground">{result.note}</div>
-                              )}
-                            </div>
-                          </div>
+                      <div className="flex items-center gap-8">
+                        <div className="text-sm w-32">
+                          {format(new Date(result.result_date), 'yyyy-MM-dd')}
                         </div>
-                        <Badge variant={result.mode === "auto" ? "default" : "secondary"}>
-                          {result.mode}
-                        </Badge>
+                        <div className="text-lg font-medium">
+                          {result.result}
+                        </div>
                       </div>
                     </div>
                   ))}
