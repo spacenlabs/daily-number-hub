@@ -7,18 +7,22 @@ import { useGames } from "@/hooks/useGames";
 import { useGameResultsHistory } from "@/hooks/useGameResultsHistory";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-
 const GameDetail = () => {
-  const { id } = useParams();
-  const { games, loading: gamesLoading } = useGames();
-  const { results, loading: resultsLoading } = useGameResultsHistory(id || '');
-  
+  const {
+    id
+  } = useParams();
+  const {
+    games,
+    loading: gamesLoading
+  } = useGames();
+  const {
+    results,
+    loading: resultsLoading
+  } = useGameResultsHistory(id || '');
   const game = games.find(g => g.id === id);
   const loading = gamesLoading || resultsLoading;
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-muted/30">
+    return <div className="min-h-screen bg-muted/30">
         <header className="bg-card border-b shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <Skeleton className="h-8 w-64" />
@@ -31,13 +35,10 @@ const GameDetail = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!game) {
-    return (
-      <div className="min-h-screen bg-muted/30">
+    return <div className="min-h-screen bg-muted/30">
         <header className="bg-card border-b shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <Link to="/">
@@ -55,12 +56,9 @@ const GameDetail = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-muted/30">
+  return <div className="min-h-screen bg-muted/30">
       {/* Header */}
       <header className="bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -87,9 +85,10 @@ const GameDetail = () => {
               <CardTitle className="flex items-center justify-between">
                 Results History
                 <div className="flex gap-2">
+                  
                   <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Jump to Date
+                    <Download className="h-4 w-4" />
+                    Export CSV
                   </Button>
                 </div>
               </CardTitle>
@@ -97,46 +96,26 @@ const GameDetail = () => {
           </Card>
 
           {/* Results List */}
-          <Card className="overflow-hidden">
+          <Card>
             <CardContent className="p-0">
-              {results.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
+              {results.length === 0 ? <div className="p-8 text-center text-muted-foreground">
                   No results history available for this game yet.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr>
-                        <th className="bg-accent text-accent-foreground py-2 px-6 text-center font-bold text-lg border-r border-background">
-                          Date
-                        </th>
-                        <th className="bg-accent text-accent-foreground py-2 px-6 text-center font-bold text-lg">
-                          Number
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {results.map((result) => (
-                        <tr key={result.id} className="border-t border-border">
-                          <td className="py-2 px-6 text-accent font-medium text-center border-r border-border">
-                            {format(new Date(result.result_date), 'dd/MM/yyyy')}
-                          </td>
-                          <td className="py-2 px-6 text-primary font-bold text-lg text-center">
-                            {result.result.toString().padStart(2, '0')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                </div> : <div className="divide-y">
+                  {results.map(result => <div key={result.id} className="p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-8">
+                        <div className="text-sm w-32">
+                          {format(new Date(result.result_date), 'dd/MM/yyyy')}
+                        </div>
+                        <div className="text-lg font-medium">
+                          {result.result}
+                        </div>
+                      </div>
+                    </div>)}
+                </div>}
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default GameDetail;
