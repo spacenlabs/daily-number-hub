@@ -128,7 +128,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
           Bulk Results History Upload
         </CardTitle>
         <CardDescription>
-          Upload historical results in CSV format. CSV should have columns: game_name, date (YYYY-MM-DD), result (0-99)
+          Upload historical results in CSV format. CSV should have columns: game_name, date (DD/MM/YYYY), result (0-99)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
