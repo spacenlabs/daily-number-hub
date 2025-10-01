@@ -463,6 +463,41 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+                {/* Edit Game Dialog */}
+                <Dialog open={isEditGameOpen} onOpenChange={setIsEditGameOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Game</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-game-name">Game Name *</Label>
+                        <Input id="edit-game-name" value={editGameForm.name} onChange={(e) => setEditGameForm({ ...editGameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-short-code">Short Code *</Label>
+                        <Input id="edit-short-code" value={editGameForm.short_code} onChange={(e) => setEditGameForm({ ...editGameForm, short_code: e.target.value })} placeholder="e.g., DL" />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-scheduled-time">Scheduled Time (24-hour format) *</Label>
+                        <Input id="edit-scheduled-time" type="time" value={editGameForm.scheduled_time} onChange={(e) => setEditGameForm({ ...editGameForm, scheduled_time: e.target.value })} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id="edit-enabled" checked={editGameForm.enabled} onChange={(e) => setEditGameForm({ ...editGameForm, enabled: e.target.checked })} className="h-4 w-4" />
+                        <Label htmlFor="edit-enabled">Enable game</Label>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsEditGameOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleEditGame}>
+                          Update Game
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
               <div className="grid gap-3 sm:gap-4">
                 {games.map(game => <Card key={game.id}>
                     <CardContent className="p-3 sm:p-6">
@@ -622,40 +657,7 @@ const AdminDashboard = () => {
                   </DialogContent>
                 </Dialog>
 
-                {/* Edit Game Dialog */}
-                <Dialog open={isEditGameOpen} onOpenChange={setIsEditGameOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Game</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="edit-game-name">Game Name *</Label>
-                        <Input id="edit-game-name" value={editGameForm.name} onChange={(e) => setEditGameForm({ ...editGameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-short-code">Short Code *</Label>
-                        <Input id="edit-short-code" value={editGameForm.short_code} onChange={(e) => setEditGameForm({ ...editGameForm, short_code: e.target.value })} placeholder="e.g., DL" />
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-scheduled-time">Scheduled Time (24-hour format) *</Label>
-                        <Input id="edit-scheduled-time" type="time" value={editGameForm.scheduled_time} onChange={(e) => setEditGameForm({ ...editGameForm, scheduled_time: e.target.value })} />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" id="edit-enabled" checked={editGameForm.enabled} onChange={(e) => setEditGameForm({ ...editGameForm, enabled: e.target.checked })} className="h-4 w-4" />
-                        <Label htmlFor="edit-enabled">Enable game</Label>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsEditGameOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleEditGame}>
-                          Update Game
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                 {/* Edit Game Dialog moved to Games tab */}
               </div>
             </div>
             
