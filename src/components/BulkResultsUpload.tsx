@@ -64,10 +64,10 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
         throw new Error(`Invalid result at line ${i + 1}: Must be a number between 0-99`);
       }
       
-      // Validate and convert DD/MM/YYYY to YYYY-MM-DD
-      const dateParts = dateStr.split("/");
+      // Validate and convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD
+      const dateParts = dateStr.includes("/") ? dateStr.split("/") : dateStr.split("-");
       if (dateParts.length !== 3) {
-        throw new Error(`Invalid date format at line ${i + 1}: Expected DD/MM/YYYY (e.g., 13/09/2025)`);
+        throw new Error(`Invalid date format at line ${i + 1}: Expected DD/MM/YYYY or DD-MM-YYYY (e.g., 13/09/2025 or 13-09-2025)`);
       }
       
       const day = parseInt(dateParts[0]);
@@ -169,7 +169,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
           Bulk Results History Upload
         </CardTitle>
         <CardDescription>
-          Upload historical results in CSV format. CSV should have columns: date (DD/MM/YYYY), game_name, result (0-99)
+          Upload historical results in CSV format. CSV should have columns: date (DD/MM/YYYY or DD-MM-YYYY), game_name, result (0-99)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
