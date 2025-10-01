@@ -101,7 +101,7 @@ const GameDetail = () => {
               {results.length === 0 ? <div className="p-8 text-center text-muted-foreground">
                   No results history available for this game yet.
                 </div> : <div className="divide-y">
-                  {results.map(result => <div key={result.id} className="p-4 hover:bg-muted/50 transition-colors">
+                  {results.map(result => <div key={result.id} className="py-1 px-2 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-8">
                         <div className="text-sm w-32">
                           {format(new Date(result.result_date), 'dd/MM/yyyy')}
