@@ -412,38 +412,55 @@ const AdminDashboard = () => {
           {canManageGames && <TabsContent value="games" className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
-                <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
-                  <Button className="gap-2 w-full sm:w-auto" onClick={() => setIsAddGameOpen(true)}>
-                    <Plus className="h-4 w-4" />
-                    Add New Game
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button 
+                    variant="outline" 
+                    className="gap-2 flex-1 sm:flex-initial" 
+                    onClick={async () => {
+                      try {
+                        const { error } = await supabase.functions.invoke('daily-migration');
+                        if (error) throw error;
+                        toast.success("All today's results have been migrated to yesterday");
+                      } catch (error) {
+                        toast.error("Failed to migrate results");
+                      }
+                    }}
+                  >
+                    Migrate Results
                   </Button>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Game</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="game-name">Game Name *</Label>
-                        <Input id="game-name" value={gameForm.name} onChange={(e) => setGameForm({ ...gameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
+                  <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
+                    <Button className="gap-2 flex-1 sm:flex-initial" onClick={() => setIsAddGameOpen(true)}>
+                      <Plus className="h-4 w-4" />
+                      Add New Game
+                    </Button>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Game</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="game-name">Game Name *</Label>
+                          <Input id="game-name" value={gameForm.name} onChange={(e) => setGameForm({ ...gameForm, name: e.target.value })} placeholder="e.g., Daily Lottery" />
+                        </div>
+                        <div>
+                          <Label htmlFor="short-code">Short Code *</Label>
+                          <Input id="short-code" value={gameForm.short_code} onChange={(e) => setGameForm({ ...gameForm, short_code: e.target.value })} placeholder="e.g., DL" />
+                        </div>
+                        <div>
+                          <Label htmlFor="scheduled-time">Scheduled Time (24-hour format) *</Label>
+                          <Input id="scheduled-time" type="time" value={gameForm.scheduled_time} onChange={(e) => setGameForm({ ...gameForm, scheduled_time: e.target.value })} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input type="checkbox" id="enabled" checked={gameForm.enabled} onChange={(e) => setGameForm({ ...gameForm, enabled: e.target.checked })} className="h-4 w-4" />
+                          <Label htmlFor="enabled">Enable game</Label>
+                        </div>
+                        <Button onClick={handleAddGame} className="w-full">
+                          Add Game
+                        </Button>
                       </div>
-                      <div>
-                        <Label htmlFor="short-code">Short Code *</Label>
-                        <Input id="short-code" value={gameForm.short_code} onChange={(e) => setGameForm({ ...gameForm, short_code: e.target.value })} placeholder="e.g., DL" />
-                      </div>
-                      <div>
-                        <Label htmlFor="scheduled-time">Scheduled Time (24-hour format) *</Label>
-                        <Input id="scheduled-time" type="time" value={gameForm.scheduled_time} onChange={(e) => setGameForm({ ...gameForm, scheduled_time: e.target.value })} />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" id="enabled" checked={gameForm.enabled} onChange={(e) => setGameForm({ ...gameForm, enabled: e.target.checked })} className="h-4 w-4" />
-                        <Label htmlFor="enabled">Enable game</Label>
-                      </div>
-                      <Button onClick={handleAddGame} className="w-full">
-                        Add Game
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               <div className="grid gap-3 sm:gap-4">
