@@ -24,7 +24,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
   const downloadTemplate = () => {
     const headers = ["date", "game_name", "result"];
     const sampleData = games.slice(0, 2).map(game => 
-      `01/01/2024,${game.name},45`
+      `01/01/2024,${game.name},05`
     );
     const csv = [headers.join(","), ...sampleData].join("\n");
     

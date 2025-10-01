@@ -524,7 +524,7 @@ const AdminDashboard = () => {
                             <div className="text-center flex-1 sm:flex-none">
                               <div className="text-xs text-muted-foreground">Yesterday</div>
                               <div className="text-sm sm:text-lg font-bold">
-                                {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                                {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result.toString().padStart(2, '0') : "--"}
                               </div>
                               {canManageResults && <Button variant="outline" size="sm" onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)} className="mt-1 w-full sm:w-auto">
                                   <Edit className="h-3 w-3" />
@@ -533,7 +533,7 @@ const AdminDashboard = () => {
                             <div className="text-center flex-1 sm:flex-none">
                               <div className="text-xs text-muted-foreground">Today</div>
                               <div className="text-lg sm:text-xl font-bold">
-                                {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                                {game.today_result !== undefined && game.today_result !== null ? game.today_result.toString().padStart(2, '0') : "--"}
                               </div>
                               {canManageResults && <Button variant="outline" size="sm" onClick={() => openEditDialog(game.id, game.today_result)} disabled={game.today_result === null || game.today_result === undefined} className="mt-1 w-full sm:w-auto">
                                   <Edit className="h-3 w-3" />
@@ -689,7 +689,7 @@ const AdminDashboard = () => {
                               <div>
                                 <div className="text-xs text-muted-foreground">Yesterday</div>
                                 <div className="text-sm font-bold">
-                                  {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result : "--"}
+                                  {game.yesterday_result !== undefined && game.yesterday_result !== null ? game.yesterday_result.toString().padStart(2, '0') : "--"}
                                 </div>
                                 <Button variant="outline" size="sm" onClick={() => openEditYesterdayDialog(game.id, game.yesterday_result)} className="h-6 w-6 p-0 mt-1">
                                   <Edit className="h-2 w-2" />
@@ -698,7 +698,7 @@ const AdminDashboard = () => {
                               <div>
                                 <div className="text-xs text-muted-foreground">Today</div>
                                 <div className="text-lg font-bold">
-                                  {game.today_result !== undefined && game.today_result !== null ? game.today_result : "--"}
+                                  {game.today_result !== undefined && game.today_result !== null ? game.today_result.toString().padStart(2, '0') : "--"}
                                 </div>
                                 {game.today_result !== undefined && game.today_result !== null && <Button variant="outline" size="sm" onClick={() => openEditDialog(game.id, game.today_result)} className="h-6 w-6 p-0 mt-1">
                                     <Edit className="h-2 w-2" />

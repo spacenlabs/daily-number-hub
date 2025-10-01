@@ -116,7 +116,7 @@ const GameDetail = () => {
                           {format(new Date(result.result_date), 'dd/MM/yyyy')}
                         </div>
                         <div className="text-lg font-medium">
-                          {result.result}
+                          {result.result.toString().padStart(2, '0')}
                         </div>
                       </div>
                     </div>
