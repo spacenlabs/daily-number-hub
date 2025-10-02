@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Download, FileText } from "lucide-react";
+import * as XLSX from 'xlsx';
 
 interface BulkResultsUploadProps {
   games: Array<{ id: string; name: string; short_code: string }>;
@@ -22,87 +23,94 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
   };
 
   const downloadTemplate = () => {
-    const headers = ["date", "game_name", "result"];
-    const sampleData = games.map(game => 
-      `01/01/2024,${game.name},05`
-    );
-    const csv = [headers.join(","), ...sampleData].join("\n");
+    const data = games.map(game => ({
+      date: "01/01/2024",
+      game_name: game.name,
+      result: 5
+    }));
     
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "bulk_results_template.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Results");
+    
+    XLSX.writeFile(wb, "bulk_results_template.xlsx");
     toast.success("Template downloaded");
   };
 
-  const parseCSV = (text: string): Array<{ game_name: string; date: string; result: number }> => {
-    const lines = text.trim().split("\n");
-    const data: Array<{ game_name: string; date: string; result: number }> = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+  const parseExcel = (file: File): Promise<Array<{ game_name: string; date: string; result: number }>> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
       
-      const parts = line.split(",");
-      if (parts.length !== 3) {
-        throw new Error(`Invalid CSV format at line ${i + 1}: Expected 3 columns (date, game_name, result)`);
-      }
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          const results: Array<{ game_name: string; date: string; result: number }> = [];
+          
+          jsonData.forEach((row: any, index: number) => {
+            const lineNum = index + 2; // +2 because of header and 0-indexing
+            
+            // Validate game name
+            if (!row.game_name || typeof row.game_name !== 'string' || row.game_name.trim().length === 0) {
+              throw new Error(`Invalid game name at row ${lineNum}: Cannot be empty`);
+            }
+            
+            // Validate result
+            const result = parseInt(String(row.result));
+            if (isNaN(result) || result < 0 || result > 99) {
+              throw new Error(`Invalid result at row ${lineNum}: Must be a number between 0-99`);
+            }
+            
+            // Parse date
+            let dateStr = String(row.date);
+            const dateParts = dateStr.includes("/") ? dateStr.split("/") : dateStr.split("-");
+            if (dateParts.length !== 3) {
+              throw new Error(`Invalid date format at row ${lineNum}: Expected DD/MM/YYYY or DD-MM-YYYY`);
+            }
+            
+            const day = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]);
+            const year = parseInt(dateParts[2]);
+            
+            if (isNaN(day) || isNaN(month) || isNaN(year)) {
+              throw new Error(`Invalid date at row ${lineNum}: Day, month, and year must be numbers`);
+            }
+            
+            if (day < 1 || day > 31) {
+              throw new Error(`Invalid day at row ${lineNum}: Must be between 1-31`);
+            }
+            
+            if (month < 1 || month > 12) {
+              throw new Error(`Invalid month at row ${lineNum}: Must be between 1-12`);
+            }
+            
+            if (year < 1900 || year > 2100) {
+              throw new Error(`Invalid year at row ${lineNum}: Must be between 1900-2100`);
+            }
+            
+            const testDate = new Date(year, month - 1, day);
+            if (testDate.getDate() !== day || testDate.getMonth() !== month - 1 || testDate.getFullYear() !== year) {
+              throw new Error(`Invalid date at row ${lineNum}: ${dateStr} is not a valid calendar date`);
+            }
+            
+            const date = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+            
+            results.push({ game_name: row.game_name.trim(), date, result });
+          });
+          
+          resolve(results);
+        } catch (error: any) {
+          reject(error);
+        }
+      };
       
-      const [dateStr, game_name, resultStr] = parts.map(p => p.trim());
-      
-      // Validate game name
-      if (!game_name || game_name.length === 0) {
-        throw new Error(`Invalid game name at line ${i + 1}: Cannot be empty`);
-      }
-      
-      // Validate result
-      const result = parseInt(resultStr);
-      if (isNaN(result) || result < 0 || result > 99) {
-        throw new Error(`Invalid result at line ${i + 1}: Must be a number between 0-99`);
-      }
-      
-      // Validate and convert DD/MM/YYYY or DD-MM-YYYY to YYYY-MM-DD
-      const dateParts = dateStr.includes("/") ? dateStr.split("/") : dateStr.split("-");
-      if (dateParts.length !== 3) {
-        throw new Error(`Invalid date format at line ${i + 1}: Expected DD/MM/YYYY or DD-MM-YYYY (e.g., 13/09/2025 or 13-09-2025)`);
-      }
-      
-      const day = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]);
-      const year = parseInt(dateParts[2]);
-      
-      // Validate date components
-      if (isNaN(day) || isNaN(month) || isNaN(year)) {
-        throw new Error(`Invalid date at line ${i + 1}: Day, month, and year must be numbers`);
-      }
-      
-      if (day < 1 || day > 31) {
-        throw new Error(`Invalid day at line ${i + 1}: Must be between 1-31`);
-      }
-      
-      if (month < 1 || month > 12) {
-        throw new Error(`Invalid month at line ${i + 1}: Must be between 1-12`);
-      }
-      
-      if (year < 1900 || year > 2100) {
-        throw new Error(`Invalid year at line ${i + 1}: Must be between 1900-2100`);
-      }
-      
-      // Validate the date is actually valid (e.g., not 31/02/2025)
-      const testDate = new Date(year, month - 1, day);
-      if (testDate.getDate() !== day || testDate.getMonth() !== month - 1 || testDate.getFullYear() !== year) {
-        throw new Error(`Invalid date at line ${i + 1}: ${dateStr} is not a valid calendar date`);
-      }
-      
-      const date = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
-      
-      data.push({ game_name, date, result });
-    }
-    
-    return data;
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsBinaryString(file);
+    });
   };
 
   const handleUpload = async () => {
@@ -113,8 +121,7 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
 
     setUploading(true);
     try {
-      const text = await file.text();
-      const records = parseCSV(text);
+      const records = await parseExcel(file);
       
       if (records.length === 0) {
         toast.error("No valid records found in CSV");
@@ -169,16 +176,16 @@ export const BulkResultsUpload = ({ games }: BulkResultsUploadProps) => {
           Bulk Results History Upload
         </CardTitle>
         <CardDescription>
-          Upload historical results in CSV format. CSV should have columns: date (DD/MM/YYYY or DD-MM-YYYY), game_name, result (0-99)
+          Upload historical results in Excel format. File should have columns: date (DD/MM/YYYY or DD-MM-YYYY), game_name, result (0-99)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="bulk-upload-input">CSV File</Label>
+          <Label htmlFor="bulk-upload-input">Excel File</Label>
           <Input
             id="bulk-upload-input"
             type="file"
-            accept=".csv"
+            accept=".xlsx,.xls"
             onChange={handleFileChange}
           />
           {file && (
