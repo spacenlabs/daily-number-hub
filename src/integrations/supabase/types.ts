@@ -124,6 +124,33 @@ export type Database = {
         }
         Relationships: []
       }
+      migration_backups: {
+        Row: {
+          backup_data: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          restored: boolean
+          restored_at: string | null
+        }
+        Insert: {
+          backup_data: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          restored?: boolean
+          restored_at?: string | null
+        }
+        Update: {
+          backup_data?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          restored?: boolean
+          restored_at?: string | null
+        }
+        Relationships: []
+      }
       page_sections: {
         Row: {
           content: Json

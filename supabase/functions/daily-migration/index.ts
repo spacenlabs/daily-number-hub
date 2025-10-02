@@ -22,12 +22,41 @@ Deno.serve(async (req) => {
 
     console.log('Starting daily result migration...')
     
-    // Call the existing database function to migrate results
-    const { error } = await supabase.rpc('migrate_daily_results')
+    // Step 1: Fetch current state of all games before migration
+    const { data: gamesBeforeMigration, error: fetchError } = await supabase
+      .from('games')
+      .select('id, today_result, yesterday_result, status')
     
-    if (error) {
-      console.error('Error during migration:', error)
-      throw error
+    if (fetchError) {
+      console.error('Error fetching games before migration:', fetchError)
+      throw fetchError
+    }
+
+    console.log(`Creating backup for ${gamesBeforeMigration?.length || 0} games...`)
+
+    // Step 2: Create backup in migration_backups table
+    const { data: backup, error: backupError } = await supabase
+      .from('migration_backups')
+      .insert({
+        backup_data: gamesBeforeMigration,
+        created_at: new Date().toISOString()
+      })
+      .select('id')
+      .single()
+    
+    if (backupError) {
+      console.error('Error creating backup:', backupError)
+      throw backupError
+    }
+
+    console.log('Backup created with ID:', backup.id)
+
+    // Step 3: Call the existing database function to migrate results
+    const { error: migrationError } = await supabase.rpc('migrate_daily_results')
+    
+    if (migrationError) {
+      console.error('Error during migration:', migrationError)
+      throw migrationError
     }
 
     console.log('Daily migration completed successfully at:', new Date().toISOString())
@@ -36,6 +65,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Daily migration completed successfully',
+        backup_id: backup.id,
         timestamp: new Date().toISOString()
       }),
       { 

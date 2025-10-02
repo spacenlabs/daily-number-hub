@@ -10,12 +10,14 @@ import { UserManagement } from "@/components/UserManagement";
 import { BulkResultsUpload } from "@/components/BulkResultsUpload";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
-import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle } from "lucide-react";
+import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +70,21 @@ const AdminDashboard = () => {
     scheduled_time: "",
     enabled: true
   });
+  const [migrationBackupId, setMigrationBackupId] = useState<string | null>(null);
+  const [undoTimeRemaining, setUndoTimeRemaining] = useState<number>(0);
+  const [isMigratingResults, setIsMigratingResults] = useState(false);
+
+  // Undo timer effect
+  useEffect(() => {
+    if (undoTimeRemaining > 0) {
+      const timer = setTimeout(() => {
+        setUndoTimeRemaining(undoTimeRemaining - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (undoTimeRemaining === 0 && migrationBackupId) {
+      setMigrationBackupId(null);
+    }
+  }, [undoTimeRemaining, migrationBackupId]);
 
   // Check authentication and permissions
   useEffect(() => {
@@ -253,6 +270,53 @@ const AdminDashboard = () => {
       console.error('Unexpected error:', error);
       toast.error('Failed to logout from all devices');
     }
+  };
+
+  const handleMigrateResults = async () => {
+    setIsMigratingResults(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('daily-migration');
+      
+      if (error) throw error;
+      
+      if (data?.backup_id) {
+        setMigrationBackupId(data.backup_id);
+        setUndoTimeRemaining(600); // 10 minutes in seconds
+      }
+      
+      toast.success("Results migrated successfully. Today's results moved to yesterday.");
+    } catch (error) {
+      console.error('Error migrating results:', error);
+      toast.error("Failed to migrate results");
+    } finally {
+      setIsMigratingResults(false);
+    }
+  };
+
+  const handleUndoMigration = async () => {
+    if (!migrationBackupId) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('undo-migration', {
+        body: { backup_id: migrationBackupId }
+      });
+      
+      if (error) throw error;
+      
+      setMigrationBackupId(null);
+      setUndoTimeRemaining(0);
+      
+      toast.success(`Migration undone successfully. Restored ${data?.restored_games || 0} games.`);
+    } catch (error) {
+      console.error('Error undoing migration:', error);
+      toast.error("Failed to undo migration");
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
   if (loading) {
     return <div className="min-h-screen bg-muted/30 flex items-center justify-center">
@@ -544,22 +608,78 @@ const AdminDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <h2 className="text-lg sm:text-xl font-semibold">Manage Results</h2>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button 
-                  variant="outline" 
-                  className="gap-2" 
-                  onClick={async () => {
-                    try {
-                      const { error } = await supabase.functions.invoke('daily-migration');
-                      if (error) throw error;
-                      toast.success("All today's results have been migrated to yesterday");
-                    } catch (error) {
-                      toast.error("Failed to migrate results");
-                    }
-                  }}
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                  Migrate Results
-                </Button>
+                {migrationBackupId && undoTimeRemaining > 0 && (
+                  <Alert className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="flex items-center justify-between gap-4">
+                      <span>Migration completed. You can undo this action.</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          {formatTime(undoTimeRemaining)}
+                        </span>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              Undo
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Undo Migration?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will restore all games to their state before the migration.
+                                Yesterday's results will be restored to today's results.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleUndoMigration}>
+                                Undo Migration
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      disabled={isMigratingResults}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                      {isMigratingResults ? "Migrating..." : "Migrate Results"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm Result Migration</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2">
+                        <p className="font-semibold">This action will:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Move all today's results to yesterday</li>
+                          <li>Clear all today's results</li>
+                          <li>Reset all game statuses to 'pending'</li>
+                          <li>Affect {games.length} game{games.length !== 1 ? 's' : ''}</li>
+                        </ul>
+                        <p className="text-yellow-600 dark:text-yellow-500 font-semibold mt-4">
+                          ⚠️ Previous yesterday's results will be permanently overwritten!
+                        </p>
+                        <p className="mt-2">You will have 10 minutes to undo this action if needed.</p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleMigrateResults}>
+                        Confirm Migration
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
