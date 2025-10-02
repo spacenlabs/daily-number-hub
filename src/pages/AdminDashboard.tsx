@@ -544,6 +544,21 @@ const AdminDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <h2 className="text-lg sm:text-xl font-semibold">Manage Results</h2>
               <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={async () => {
+                    try {
+                      const { error } = await supabase.functions.invoke('daily-migration');
+                      if (error) throw error;
+                      toast.success("All today's results have been migrated to yesterday");
+                    } catch (error) {
+                      toast.error("Failed to migrate results");
+                    }
+                  }}
+                >
+                  Migrate Results
+                </Button>
                 <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
