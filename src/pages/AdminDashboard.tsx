@@ -413,24 +413,8 @@ const AdminDashboard = () => {
           {canManageGames && <TabsContent value="games" className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button 
-                    variant="outline" 
-                    className="gap-2 flex-1 sm:flex-initial" 
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase.functions.invoke('daily-migration');
-                        if (error) throw error;
-                        toast.success("All today's results have been migrated to yesterday");
-                      } catch (error) {
-                        toast.error("Failed to migrate results");
-                      }
-                    }}
-                  >
-                    Migrate Results
-                  </Button>
-                  <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
-                    <Button className="gap-2 flex-1 sm:flex-initial" onClick={() => setIsAddGameOpen(true)}>
+                <Dialog open={isAddGameOpen} onOpenChange={setIsAddGameOpen}>
+                    <Button className="gap-2" onClick={() => setIsAddGameOpen(true)}>
                       <Plus className="h-4 w-4" />
                       Add New Game
                     </Button>
@@ -461,7 +445,6 @@ const AdminDashboard = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
-                </div>
               </div>
 
                 {/* Edit Game Dialog */}
@@ -561,6 +544,21 @@ const AdminDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <h2 className="text-lg sm:text-xl font-semibold">Manage Results</h2>
               <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={async () => {
+                    try {
+                      const { error } = await supabase.functions.invoke('daily-migration');
+                      if (error) throw error;
+                      toast.success("All today's results have been migrated to yesterday");
+                    } catch (error) {
+                      toast.error("Failed to migrate results");
+                    }
+                  }}
+                >
+                  Migrate Results
+                </Button>
                 <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
