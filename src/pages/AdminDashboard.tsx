@@ -10,7 +10,7 @@ import { UserManagement } from "@/components/UserManagement";
 import { BulkResultsUpload } from "@/components/BulkResultsUpload";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
-import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone } from "lucide-react";
+import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -557,6 +557,7 @@ const AdminDashboard = () => {
                     }
                   }}
                 >
+                  <AlertTriangle className="h-4 w-4" />
                   Migrate Results
                 </Button>
                 <Dialog open={isAddResultOpen} onOpenChange={setIsAddResultOpen}>
