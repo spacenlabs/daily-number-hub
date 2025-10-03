@@ -17,19 +17,22 @@ interface UserProfile {
   id: string;
   user_id: string;
   email: string;
-  role: AppRole;
   first_name?: string;
   last_name?: string;
   created_at: string;
   updated_at: string;
 }
 
+interface UserWithRole extends UserProfile {
+  role: AppRole;
+}
+
 export const UserManagement = () => {
   const { canManageUsers, profile, isSuperAdmin, session } = useAuth();
   const { toast } = useToast();
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -54,13 +57,31 @@ export const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch profiles and join with user_roles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch all user roles
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Merge profiles with roles
+      const usersWithRoles = (profiles || []).map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.user_id);
+        return {
+          ...profile,
+          role: userRole?.role || 'user' as AppRole
+        };
+      });
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -75,10 +96,12 @@ export const UserManagement = () => {
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     try {
+      // Use the assign_role_permissions RPC function to update role
       const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
+        .rpc('assign_role_permissions', {
+          _user_id: userId,
+          _role: newRole
+        });
 
       if (error) throw error;
 
@@ -141,7 +164,7 @@ export const UserManagement = () => {
     }
   };
 
-  const handleEditProfile = (user: UserProfile) => {
+  const handleEditProfile = (user: UserWithRole) => {
     setEditingUser(user);
     setEditFirstName(user.first_name || '');
     setEditLastName(user.last_name || '');
@@ -189,7 +212,7 @@ export const UserManagement = () => {
     }
   };
 
-  const handleChangePassword = (user: UserProfile) => {
+  const handleChangePassword = (user: UserWithRole) => {
     setEditingUser(user);
     setNewPassword('');
     setCurrentPassword('');
