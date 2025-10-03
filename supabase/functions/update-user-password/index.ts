@@ -55,50 +55,34 @@ const handler = async (req: Request): Promise<Response> => {
     const { userId, newPassword, currentPassword }: UpdatePasswordRequest = await req.json();
     console.log('Request body parsed for user:', userId);
 
-    // Validate password length and complexity - enhanced security requirements
-    if (!newPassword || newPassword.length < 10) {
-      console.error('Password validation failed - too short');
-      return new Response(JSON.stringify({ error: 'Password must be at least 10 characters long' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    // Check for password complexity
-    const hasUppercase = /[A-Z]/.test(newPassword);
-    const hasLowercase = /[a-z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
-    
-    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
-      console.error('Password validation failed - insufficient complexity');
-      return new Response(JSON.stringify({ 
-        error: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' 
-      }), {
+    // Validate password length
+    if (!newPassword || newPassword.length < 6) {
+      console.error('Password validation failed');
+      return new Response(JSON.stringify({ error: 'Password must be at least 6 characters long' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Check if user has permission to update this password using user_roles table
-    const { data: currentUserRole, error: roleError } = await supabaseAdmin
-      .from('user_roles')
+    // Check if user has permission to update this password
+    const { data: currentUserProfile, error: profileError } = await supabaseAdmin
+      .from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (roleError) {
-      console.error('Error fetching current user role:', roleError);
+    if (profileError) {
+      console.error('Error fetching current user profile:', profileError);
       return new Response(JSON.stringify({ error: 'Failed to verify permissions' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Current user role:', currentUserRole);
+    console.log('Current user profile:', currentUserProfile);
 
     const isUpdatingOwnPassword = user.id === userId;
-    const isSuperAdmin = currentUserRole.role === 'super_admin';
+    const isSuperAdmin = currentUserProfile.role === 'super_admin';
     const canUpdatePassword = isUpdatingOwnPassword || isSuperAdmin;
 
     if (!canUpdatePassword) {

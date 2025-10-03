@@ -36,7 +36,6 @@ const AdminDashboard = () => {
   const {
     user,
     profile,
-    userRole,
     loading: authLoading,
     signOut,
     canManageUsers,
@@ -89,10 +88,10 @@ const AdminDashboard = () => {
 
   // Check authentication and permissions
   useEffect(() => {
-    if (!authLoading && (!user || !userRole || !hasRoleOrHigher('viewer'))) {
+    if (!authLoading && (!user || !profile?.role || !hasRoleOrHigher('viewer'))) {
       navigate('/admin');
     }
-  }, [user, userRole, authLoading, navigate, hasRoleOrHigher]);
+  }, [user, profile, authLoading, navigate, hasRoleOrHigher]);
 
   // Set default tab only on initial load based on permissions
   useEffect(() => {
@@ -341,12 +340,12 @@ const AdminDashboard = () => {
                 <span className="text-xs sm:text-sm text-muted-foreground">Logged in as:</span>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline" className="text-xs">{profile?.email}</Badge>
-                   <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs">
                     <div className="flex items-center gap-1">
-                      {userRole === 'super_admin' && <Shield className="h-3 w-3" />}
-                      {userRole === 'admin' && <Shield className="h-3 w-3" />}
-                      {userRole === 'viewer' && <Eye className="h-3 w-3" />}
-                      {userRole && ROLE_LABELS[userRole]}
+                      {profile?.role === 'super_admin' && <Shield className="h-3 w-3" />}
+                      {profile?.role === 'admin' && <Shield className="h-3 w-3" />}
+                      {profile?.role === 'viewer' && <Eye className="h-3 w-3" />}
+                      {profile?.role && ROLE_LABELS[profile.role]}
                     </div>
                   </Badge>
                 </div>

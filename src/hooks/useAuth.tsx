@@ -7,21 +7,17 @@ interface Profile {
   id: string;
   user_id: string;
   email: string;
+  role: AppRole;
   first_name?: string;
   last_name?: string;
   created_at: string;
   updated_at: string;
 }
 
-interface UserRole {
-  role: AppRole;
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
-  userRole: AppRole | null;
   permissions: UserPermission[];
   loading: boolean;
   isAdmin: boolean;
@@ -46,7 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,26 +61,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
-      return null;
-    }
-  };
-
-  const fetchUserRole = async (userId: string): Promise<AppRole | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return null;
-      }
-
-      return data?.role || null;
-    } catch (error) {
-      console.error('Error fetching user role:', error);
       return null;
     }
   };
@@ -117,22 +92,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch profile, role and permissions when user logs in
+        // Fetch profile and permissions when user logs in
         if (session?.user) {
           setTimeout(async () => {
-            const [userProfile, role, userPermissions] = await Promise.all([
+            const [userProfile, userPermissions] = await Promise.all([
               fetchProfile(session.user.id),
-              fetchUserRole(session.user.id),
               fetchUserPermissions(session.user.id)
             ]);
             setProfile(userProfile);
-            setUserRole(role);
             setPermissions(userPermissions);
             setLoading(false);
           }, 0);
         } else {
           setProfile(null);
-          setUserRole(null);
           setPermissions([]);
           setLoading(false);
         }
@@ -146,13 +118,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (session?.user) {
         setTimeout(async () => {
-          const [userProfile, role, userPermissions] = await Promise.all([
+          const [userProfile, userPermissions] = await Promise.all([
             fetchProfile(session.user.id),
-            fetchUserRole(session.user.id),
             fetchUserPermissions(session.user.id)
           ]);
           setProfile(userProfile);
-          setUserRole(role);
           setPermissions(userPermissions);
           setLoading(false);
         }, 0);
@@ -189,17 +159,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
-  // Role and permission checking functions using user_roles table
-  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
-  const isSuperAdmin = userRole === 'super_admin';
+  // Role and permission checking functions
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+  const isSuperAdmin = profile?.role === 'super_admin';
 
   const hasRole = (role: AppRole): boolean => {
-    return userRole === role;
+    return profile?.role === role;
   };
 
   const hasRoleOrHigher = (role: AppRole): boolean => {
-    if (!userRole) return false;
-    return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[role];
+    if (!profile?.role) return false;
+    return ROLE_HIERARCHY[profile.role] >= ROLE_HIERARCHY[role];
   };
 
   const hasPermission = (permission: Permission): boolean => {
@@ -218,7 +188,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     profile,
-    userRole,
     permissions,
     loading,
     isAdmin,

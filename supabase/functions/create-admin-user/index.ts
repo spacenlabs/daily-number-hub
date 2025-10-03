@@ -33,14 +33,14 @@ serve(async (req) => {
       throw new Error('Invalid authentication')
     }
 
-    // Check if user is super admin using user_roles table
-    const { data: userRole, error: roleError } = await supabaseAdmin
-      .from('user_roles')
+    // Check if user is super admin
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single()
 
-    if (roleError || !userRole || userRole.role !== 'super_admin') {
+    if (profileError || !profile || profile.role !== 'super_admin') {
       throw new Error('Insufficient permissions - Super Admin required')
     }
 
@@ -57,19 +57,9 @@ serve(async (req) => {
       throw new Error('Invalid email format')
     }
 
-    // Validate password strength - enhanced security requirements
-    if (password.length < 10) {
-      throw new Error('Password must be at least 10 characters long')
-    }
-    
-    // Check for password complexity
-    const hasUppercase = /[A-Z]/.test(password)
-    const hasLowercase = /[a-z]/.test(password)
-    const hasNumber = /[0-9]/.test(password)
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    
-    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
-      throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+    // Validate password strength
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters long')
     }
 
     // Validate role
@@ -100,18 +90,20 @@ serve(async (req) => {
       throw new Error('User creation failed - no user returned')
     }
 
-    // Assign the role to the user using the assign_role_permissions function
-    const { error: roleAssignError } = await supabaseAdmin
-      .rpc('assign_role_permissions', {
-        _user_id: newUser.user.id,
-        _role: role
+    // Update the user's profile with the specified role
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        role: role,
+        email: email 
       })
+      .eq('user_id', newUser.user.id)
 
-    if (roleAssignError) {
-      console.error('Role assignment error:', roleAssignError)
-      // Try to clean up the created user if role assignment fails
+    if (profileUpdateError) {
+      console.error('Profile update error:', profileUpdateError)
+      // Try to clean up the created user if profile update fails
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
-      throw new Error(`Failed to set user role: ${roleAssignError.message}`)
+      throw new Error(`Failed to set user role: ${profileUpdateError.message}`)
     }
 
     return new Response(
