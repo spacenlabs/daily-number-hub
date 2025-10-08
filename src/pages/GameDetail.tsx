@@ -1,12 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useGames } from "@/hooks/useGames";
 import { useGameResultsHistory } from "@/hooks/useGameResultsHistory";
-import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MonthlyResultsCalendar } from "@/components/MonthlyResultsCalendar";
 const GameDetail = () => {
   const {
     id
@@ -78,40 +77,20 @@ const GameDetail = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6">
-          {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Results History
-                <div className="flex gap-2">
-                  
-                  
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {/* Results List */}
-          <Card>
-            <CardContent className="p-0">
-              {results.length === 0 ? <div className="p-8 text-center text-muted-foreground">
-                  No results history available for this game yet.
-                </div> : <div className="divide-y">
-                  {results.map(result => <div key={result.id} className="py-0.5 px-2 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-8">
-                        <div className="text-sm w-32">
-                          {format(new Date(result.result_date), 'dd/MM/yyyy')}
-                        </div>
-                        <div className="text-lg font-medium">
-                          {result.result.toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                    </div>)}
-                </div>}
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Results History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {results.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                No results history available for this game yet.
+              </div>
+            ) : (
+              <MonthlyResultsCalendar results={results} />
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>;
 };
