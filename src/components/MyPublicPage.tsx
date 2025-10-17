@@ -161,11 +161,11 @@ export const MyPublicPage = () => {
             <>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Your short URL</p>
+                  <p className="text-sm text-muted-foreground mb-2">Share this short URL:</p>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 rounded-lg border bg-card px-4 py-4">
                       <span className="text-muted-foreground text-sm mr-1">/u/</span>
-                      <span className="font-mono font-bold text-xl text-foreground">{profile.public_username}</span>
+                      <span className="font-mono font-bold text-2xl text-primary">{profile.public_username}</span>
                     </div>
                     <Button onClick={copyUrl} variant="outline" size="icon" title="Copy full URL">
                       <Copy className="h-4 w-4" />
@@ -173,8 +173,19 @@ export const MyPublicPage = () => {
                   </div>
                 </div>
                 
-                <p className="text-xs text-muted-foreground font-mono">
-                  Full URL: {fullUrl}
+                <div className="flex gap-2">
+                  <Button onClick={visitPage} className="gap-2">
+                    <ExternalLink className="h-4 w-4" />
+                    Open Public Page
+                  </Button>
+                  <Button onClick={copyUrl} variant="secondary" className="gap-2">
+                    <Copy className="h-4 w-4" />
+                    Copy Full URL
+                  </Button>
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Full URL: <span className="font-mono">{fullUrl}</span>
                 </p>
               </div>
               
