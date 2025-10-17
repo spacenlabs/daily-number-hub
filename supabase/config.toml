@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.bulk-results-upload]
 verify_jwt = false
+
+[functions.scrape-website]
+verify_jwt = false
