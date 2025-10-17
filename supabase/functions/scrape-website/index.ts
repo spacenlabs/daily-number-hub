@@ -9,7 +9,7 @@ const corsHeaders = {
 
 interface ScrapedResult {
   game_name: string;
-  result: number;
+  result: number | null;
   date: string;
   scheduled_time?: string;
 }
@@ -103,19 +103,24 @@ serve(async (req) => {
         }
       }
       
-      if (gameName && resultElements.length > 1) {
-        const resultText = resultElements[resultElements.length - 1]?.textContent?.trim();
-        if (resultText) {
-          const match = resultText.match(/\[\s*(\d+)\s*\]/);
-          if (match && match[1]) {
-            results.push({
-              game_name: gameName,
-              result: parseInt(match[1]),
-              date: today,
-              scheduled_time: scheduledTime
-            });
+      if (gameName) {
+        let result = null;
+        if (resultElements.length > 1) {
+          const resultText = resultElements[resultElements.length - 1]?.textContent?.trim();
+          if (resultText) {
+            const match = resultText.match(/\[\s*(\d+)\s*\]/);
+            if (match && match[1]) {
+              result = parseInt(match[1]);
+            }
           }
         }
+        
+        results.push({
+          game_name: gameName,
+          result: result,
+          date: today,
+          scheduled_time: scheduledTime || '12:00 PM'
+        });
       }
     });
 
@@ -134,16 +139,21 @@ serve(async (req) => {
         }
       }
       
-      if (gameName && resultText) {
-        const match = resultText.match(/\[\s*(\d+)\s*\]/);
-        if (match && match[1]) {
-          results.push({
-            game_name: gameName,
-            result: parseInt(match[1]),
-            date: today,
-            scheduled_time: scheduledTime
-          });
+      if (gameName) {
+        let result = null;
+        if (resultText) {
+          const match = resultText.match(/\[\s*(\d+)\s*\]/);
+          if (match && match[1]) {
+            result = parseInt(match[1]);
+          }
         }
+        
+        results.push({
+          game_name: gameName,
+          result: result,
+          date: today,
+          scheduled_time: scheduledTime || '12:00 PM'
+        });
       }
     });
 

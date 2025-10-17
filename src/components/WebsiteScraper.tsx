@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 
 interface ScrapedResult {
   game_name: string;
-  result: number;
+  result: number | null;
   date: string;
   scheduled_time?: string;
 }
@@ -111,19 +111,24 @@ export const WebsiteScraper = () => {
             createdGamesCount++;
           }
 
-          return {
-            game_id: game.id,
-            result: result.result,
-            result_date: result.date,
-            mode: 'auto' as const,
-          };
+          // Only create result entry if result is not null
+          if (result.result !== null) {
+            return {
+              game_id: game.id,
+              result: result.result,
+              result_date: result.date,
+              mode: 'auto' as const,
+            };
+          }
+          
+          return null;
         })
       );
 
       const validResults = resultsToUpload.filter((r) => r !== null);
 
-      if (validResults.length === 0) {
-        toast.error('Failed to process results');
+      if (validResults.length === 0 && createdGamesCount === 0) {
+        toast.error('No valid data to import');
         return;
       }
 
@@ -134,21 +139,30 @@ export const WebsiteScraper = () => {
         return;
       }
 
-      // Call the bulk upload edge function
-      const { data, error } = await supabase.functions.invoke('bulk-results-upload', {
-        body: { results: validResults },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      const message = createdGamesCount > 0 
-        ? `Created ${createdGamesCount} new games and imported ${data.success_count} results`
-        : `Successfully imported ${data.success_count} results`;
+      let importMessage = '';
       
-      toast.success(message);
+      // Call the bulk upload edge function only if there are results to upload
+      if (validResults.length > 0) {
+        const { data, error } = await supabase.functions.invoke('bulk-results-upload', {
+          body: { results: validResults },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) throw error;
+        
+        importMessage = `Imported ${data.success_count} results`;
+      }
+
+      if (createdGamesCount > 0) {
+        const gamesMessage = `Created ${createdGamesCount} new games`;
+        importMessage = importMessage 
+          ? `${gamesMessage} and ${importMessage.toLowerCase()}`
+          : gamesMessage;
+      }
+      
+      toast.success(importMessage || 'Import completed');
       setScrapedResults([]);
     } catch (error) {
       console.error('Import error:', error);
@@ -224,14 +238,20 @@ export const WebsiteScraper = () => {
                 >
                   <div className="flex flex-col">
                     <span className="font-medium">{result.game_name}</span>
-                    {result.scheduled_time && (
-                      <span className="text-xs text-muted-foreground">
-                        Time: {result.scheduled_time}
-                      </span>
-                    )}
+                    <div className="flex gap-2 text-xs text-muted-foreground">
+                      {result.scheduled_time && (
+                        <span>Time: {result.scheduled_time}</span>
+                      )}
+                      {result.result !== null && (
+                        <span>Result: {result.result}</span>
+                      )}
+                      {result.result === null && (
+                        <span className="text-yellow-600">No result</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-muted-foreground">
-                    {result.result} ({result.date})
+                  <span className="text-xs text-muted-foreground">
+                    {result.date}
                   </span>
                 </div>
               ))}
