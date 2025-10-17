@@ -70,14 +70,14 @@ Deno.serve(async (req) => {
 
     console.log(`Processing ${results.length} result updates`);
 
-    // Process each update
+    // Process each result
     let successCount = 0;
     const errors: string[] = [];
 
     for (const update of results) {
       try {
         // Insert into game_results_history table with upsert
-        const { error } = await supabase
+        const { error: historyError } = await supabase
           .from('game_results_history')
           .upsert({ 
             game_id: update.game_id,
@@ -89,13 +89,34 @@ Deno.serve(async (req) => {
             onConflict: 'game_id,result_date'
           });
 
-        if (error) {
-          errors.push(`Failed to insert result for game ${update.game_id} on ${update.result_date}: ${error.message}`);
-          console.error('Insert error:', error);
-        } else {
-          successCount++;
-          console.log(`Inserted result for game ${update.game_id} on ${update.result_date}: ${update.result}`);
+        if (historyError) {
+          errors.push(`Failed to insert result for game ${update.game_id}: ${historyError.message}`);
+          console.error('History insert error:', historyError);
+          continue;
         }
+
+        // Also update the games table today_result if the date matches today
+        const today = new Date().toISOString().split('T')[0];
+        if (update.result_date === today) {
+          const { error: gameError } = await supabase
+            .from('games')
+            .update({ 
+              today_result: update.result,
+              status: 'published',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', update.game_id);
+
+          if (gameError) {
+            errors.push(`Failed to update game ${update.game_id}: ${gameError.message}`);
+            console.error('Game update error:', gameError);
+          } else {
+            console.log(`Updated today_result for game ${update.game_id}: ${update.result}`);
+          }
+        }
+
+        successCount++;
+        console.log(`Processed result for game ${update.game_id} on ${update.result_date}: ${update.result}`);
       } catch (error) {
         errors.push(`Error processing game ${update.game_id}: ${error.message}`);
         console.error('Processing error:', error);
