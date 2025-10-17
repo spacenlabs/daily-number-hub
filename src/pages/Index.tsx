@@ -44,18 +44,42 @@ const Index = () => {
           </div>
 
           <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 max-w-6xl mx-auto">
-            {games.map(game => (
-              <GameCard
-                key={game.id}
-                id={game.id}
-                name={game.name}
-                shortCode={game.short_code}
-                scheduledTime={game.scheduled_time}
-                todayResult={game.today_result ?? undefined}
-                yesterdayResult={game.yesterday_result ?? undefined}
-                status={game.status}
-              />
-            ))}
+            {games
+              .sort((a, b) => {
+                const timeA = a.scheduled_time.includes('AM') || a.scheduled_time.includes('PM') 
+                  ? a.scheduled_time 
+                  : a.scheduled_time;
+                const timeB = b.scheduled_time.includes('AM') || b.scheduled_time.includes('PM')
+                  ? b.scheduled_time
+                  : b.scheduled_time;
+                
+                // Convert to 24-hour for comparison
+                const convertTo24 = (time: string) => {
+                  if (time.includes('AM') || time.includes('PM')) {
+                    const timePart = time.replace(/(AM|PM)/i, '').trim();
+                    const [hours, minutes] = timePart.split(':').map(Number);
+                    const isPM = time.toUpperCase().includes('PM');
+                    const hour24 = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+                    return hour24 * 60 + minutes;
+                  }
+                  const [hours, minutes] = time.split(':').map(Number);
+                  return hours * 60 + minutes;
+                };
+                
+                return convertTo24(timeA) - convertTo24(timeB);
+              })
+              .map(game => (
+                <GameCard
+                  key={game.id}
+                  id={game.id}
+                  name={game.name}
+                  shortCode={game.short_code}
+                  scheduledTime={game.scheduled_time}
+                  todayResult={game.today_result ?? undefined}
+                  yesterdayResult={game.yesterday_result ?? undefined}
+                  status={game.status}
+                />
+              ))}
           </div>
         </div>
       </section>

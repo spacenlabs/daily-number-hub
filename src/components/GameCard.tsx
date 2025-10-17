@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Clock, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatTo12Hour } from "@/lib/time-utils";
+import { formatTo12Hour, isGameOverdue } from "@/lib/time-utils";
 
 interface GameCardProps {
   id: string;
@@ -93,7 +93,7 @@ const GameCard = ({
                     </span>
                   ) : (
                     <span className="text-[10px] sm:text-xs font-medium text-primary/70">
-                      {status === "pending" ? "Wait" : "--"}
+                      {isGameOverdue(scheduledTime) ? "WAIT" : "--"}
                     </span>
                   )}
                 </div>
