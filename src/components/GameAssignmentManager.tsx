@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useGameAssignments } from '@/hooks/useGameAssignments';
 import { useGames } from '@/hooks/useGames';
+
+const PUBLIC_DOMAIN = 'https://satta-game.online';
 import {
   Table,
   TableBody,
@@ -170,7 +172,7 @@ const GameAssignmentManager = () => {
   };
 
   const copyPublicUrl = (username: string, userId: string) => {
-    const url = `${window.location.origin}/u/${username}`;
+    const url = `${PUBLIC_DOMAIN}/u/${username}`;
     navigator.clipboard.writeText(url);
     setCopiedUserId(userId);
     toast.success('Public URL copied!');
@@ -284,12 +286,12 @@ const GameAssignmentManager = () => {
                         )}
                       </Button>
                       <a
-                        href={`/u/${user.public_username}`}
+                        href={`${PUBLIC_DOMAIN}/u/${user.public_username}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline flex items-center gap-1 text-sm"
                       >
-                        /u/{user.public_username}
+                        {PUBLIC_DOMAIN}/u/{user.public_username}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
