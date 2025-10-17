@@ -33,7 +33,7 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {publishedGames.slice(0, 20).map((g) => (
                 <div key={g.id} className="px-2 py-1 rounded-md border border-primary/30 bg-primary/10 text-primary text-xs sm:text-sm font-semibold">
-                  <span className="uppercase">{g.short_code || g.name}</span>
+                  <span className="">{g.name}</span>
                   <span className="mx-1.5">•</span>
                   <span>{String(g.today_result).padStart(2, '0')}</span>
                 </div>
@@ -50,7 +50,7 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {waitGames.slice(0, 30).map((g) => (
                   <div key={g.id} className="px-2 py-1 rounded-md border border-border bg-card/50 text-xs sm:text-sm">
-                    <span className="uppercase text-foreground/90">{g.short_code || g.name}</span>
+                    <span className="text-foreground/90">{g.name}</span>
                     <span className="mx-1.5 text-muted-foreground">•</span>
                     <span className="text-warning">WAIT</span>
                   </div>
