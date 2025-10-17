@@ -90,20 +90,38 @@ serve(async (req) => {
       throw new Error('User creation failed - no user returned')
     }
 
-    // Set the user's role in user_roles table (will also trigger permissions assignment via trigger)
-    const { error: roleInsertError } = await supabaseAdmin
+    // Ensure profile exists/updated for this user
+    const { error: profileUpsertError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        user_id: newUser.user.id,
+        email: email,
+        first_name: firstName,
+        last_name: lastName,
+        is_active: true
+      }, { onConflict: 'user_id' })
+
+    if (profileUpsertError) {
+      console.error('Profile upsert error:', profileUpsertError)
+      // Clean up created user if profile fails
+      await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
+      throw new Error(`Failed to upsert profile: ${profileUpsertError.message}`)
+    }
+
+    // Set the user's role in user_roles table (upsert to avoid unique violations)
+    const { error: roleUpsertError } = await supabaseAdmin
       .from('user_roles')
-      .insert({ 
+      .upsert({ 
         user_id: newUser.user.id,
         role: role,
         assigned_by: user.id
-      })
+      }, { onConflict: 'user_id' })
 
-    if (roleInsertError) {
-      console.error('Role insert error:', roleInsertError)
-      // Try to clean up the created user if role insert fails
+    if (roleUpsertError) {
+      console.error('Role upsert error:', roleUpsertError)
+      // Try to clean up the created user if role set fails
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
-      throw new Error(`Failed to set user role: ${roleInsertError.message}`)
+      throw new Error(`Failed to set user role: ${roleUpsertError.message}`)
     }
 
     return new Response(
