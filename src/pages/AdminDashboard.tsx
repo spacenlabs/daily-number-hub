@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGames } from "@/hooks/useGames";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useGameAssignments } from "@/hooks/useGameAssignments";
 import { toast } from "sonner";
 import { formatTo12Hour } from "@/lib/time-utils";
 import { WebsiteBuilder } from "@/components/WebsiteBuilder";
 import { UserManagement } from "@/components/UserManagement";
 import { BulkResultsUpload } from "@/components/BulkResultsUpload";
 import { WebsiteScraper } from "@/components/WebsiteScraper";
+import GameAssignmentManager from "@/components/GameAssignmentManager";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle, Undo2 } from "lucide-react";
@@ -47,7 +48,13 @@ const AdminDashboard = () => {
     canViewAnalytics,
     hasRoleOrHigher
   } = useAuth();
+  const { getAssignedGameIds } = useGameAssignments();
   const navigate = useNavigate();
+  const [assignedGameIds, setAssignedGameIds] = useState<string[]>([]);
+  const [filteredGames, setFilteredGames] = useState(games);
+  
+  const isSuperAdmin = userRole === 'super_admin';
+  const isAdmin = userRole === 'admin';
   const [isAddResultOpen, setIsAddResultOpen] = useState(false);
   const [isEditResultOpen, setIsEditResultOpen] = useState(false);
   const [isEditYesterdayResultOpen, setIsEditYesterdayResultOpen] = useState(false);
@@ -94,6 +101,26 @@ const AdminDashboard = () => {
       navigate('/admin');
     }
   }, [user, userRole, authLoading, navigate, hasRoleOrHigher]);
+
+  // Load assigned games for non-admin users
+  useEffect(() => {
+    const loadAssignedGames = async () => {
+      if (user && !isSuperAdmin && !isAdmin) {
+        const ids = await getAssignedGameIds(user.id);
+        setAssignedGameIds(ids);
+      }
+    };
+    loadAssignedGames();
+  }, [user, isSuperAdmin, isAdmin]);
+
+  // Filter games based on user permissions
+  useEffect(() => {
+    if (isSuperAdmin || isAdmin) {
+      setFilteredGames(games);
+    } else {
+      setFilteredGames(games.filter(game => assignedGameIds.includes(game.id)));
+    }
+  }, [games, assignedGameIds, isSuperAdmin, isAdmin]);
 
   // Set default tab only on initial load based on permissions
   useEffect(() => {
@@ -380,7 +407,7 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : canManageContent ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-0.5 sm:gap-1 h-auto p-1`}>
+          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : canManageContent ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'} gap-0.5 sm:gap-1 h-auto p-1`}>
             {canViewAnalytics && <TabsTrigger value="overview" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
                 <BarChart3 className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
                 <span className="hidden sm:inline">Overview</span>
@@ -389,6 +416,10 @@ const AdminDashboard = () => {
             {canManageUsers && <TabsTrigger value="users" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
                 <Users className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
                 <span className="truncate">Users</span>
+              </TabsTrigger>}
+            {(isSuperAdmin || canManageGames) && <TabsTrigger value="assignments" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
+                <Users className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Assign</span>
               </TabsTrigger>}
             {canManageGames && <TabsTrigger value="games" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
                 <GamepadIcon className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
@@ -476,6 +507,14 @@ const AdminDashboard = () => {
               <UserManagement />
             </TabsContent>}
 
+          {(isSuperAdmin || canManageGames) && <TabsContent value="assignments" className="space-y-6">
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold">Game Assignments</h2>
+                <p className="text-muted-foreground">Assign games to users and manage their public pages</p>
+              </div>
+              <GameAssignmentManager />
+            </TabsContent>}
+
           {canManageGames && <TabsContent value="games" className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-lg sm:text-xl font-semibold">Manage Games</h2>
@@ -549,7 +588,15 @@ const AdminDashboard = () => {
                 </Dialog>
 
               <div className="grid gap-3 sm:gap-4">
-                {games.map(game => <Card key={game.id}>
+                {!isSuperAdmin && !isAdmin && assignedGameIds.length === 0 && (
+                  <Alert className="mb-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      No games assigned to you yet. Contact an administrator to get game assignments.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {filteredGames.map(game => <Card key={game.id}>
                     <CardContent className="p-3 sm:p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">

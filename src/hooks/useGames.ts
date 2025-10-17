@@ -19,7 +19,53 @@ export const useGames = () => {
   const [error, setError] = useState<string | null>(null);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
-  const fetchGames = async () => {
+  const fetchGames = async (userId?: string) => {
+    try {
+      setLoading(true);
+      
+      if (userId) {
+        // Fetch games assigned to specific user
+        const { data: assignments, error: assignError } = await supabase
+          .from('game_assignments')
+          .select('game_id')
+          .eq('user_id', userId);
+
+        if (assignError) throw assignError;
+
+        const gameIds = assignments?.map(a => a.game_id) || [];
+        
+        if (gameIds.length === 0) {
+          setGames([]);
+          return;
+        }
+
+        const { data, error: gamesError } = await supabase
+          .from('games')
+          .select('*')
+          .in('id', gameIds)
+          .order('scheduled_time', { ascending: true });
+
+        if (gamesError) throw gamesError;
+        setGames((data as Game[]) || []);
+      } else {
+        // Fetch all games for public view (filtered by active users)
+        const { data, error: gamesError } = await supabase
+          .from('games')
+          .select('*')
+          .order('scheduled_time', { ascending: true });
+
+        if (gamesError) throw gamesError;
+        setGames((data as Game[]) || []);
+      }
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching games:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAssignedGames = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase

@@ -41,6 +41,41 @@ export type Database = {
         }
         Relationships: []
       }
+      game_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string | null
+          game_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          game_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          game_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_assignments_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_results_history: {
         Row: {
           created_at: string
@@ -193,7 +228,9 @@ export type Database = {
           email: string
           first_name: string | null
           id: string
+          is_active: boolean | null
           last_name: string | null
+          public_username: string | null
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
           user_id: string
@@ -203,7 +240,9 @@ export type Database = {
           email: string
           first_name?: string | null
           id?: string
+          is_active?: boolean | null
           last_name?: string | null
+          public_username?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id: string
@@ -213,7 +252,9 @@ export type Database = {
           email?: string
           first_name?: string | null
           id?: string
+          is_active?: boolean | null
           last_name?: string | null
+          public_username?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id?: string
@@ -394,6 +435,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      has_game_assignment: {
+        Args: { _game_id: string; _user_id: string }
+        Returns: boolean
       }
       has_permission: {
         Args: { _permission: string; _user_id: string }
