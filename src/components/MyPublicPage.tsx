@@ -109,7 +109,7 @@ export const MyPublicPage = () => {
     if (profile?.public_username) {
       const url = `${window.location.origin}/u/${profile.public_username}`;
       navigator.clipboard.writeText(url);
-      toast.success('URL copied to clipboard!');
+      toast.success('Full URL copied to clipboard!');
     }
   };
 
@@ -137,7 +137,8 @@ export const MyPublicPage = () => {
     );
   }
 
-  const publicUrl = profile.public_username 
+  const shortUrl = profile.public_username ? `/u/${profile.public_username}` : null;
+  const fullUrl = profile.public_username 
     ? `${window.location.origin}/u/${profile.public_username}`
     : null;
 
@@ -156,15 +157,21 @@ export const MyPublicPage = () => {
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Generating your public username...</span>
             </div>
-          ) : publicUrl ? (
+          ) : shortUrl ? (
             <>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-lg border bg-muted/50 px-4 py-3 font-mono text-sm">
-                  {publicUrl}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Your Short URL:</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 rounded-lg border bg-muted/50 px-4 py-3 font-mono text-lg font-bold">
+                    {shortUrl}
+                  </div>
+                  <Button onClick={copyUrl} variant="outline" size="icon">
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button onClick={copyUrl} variant="outline" size="icon">
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Full URL: {fullUrl}
+                </p>
               </div>
               
               <div className="flex gap-2">
