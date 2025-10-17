@@ -65,24 +65,24 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Check if user has permission to update this password
-    const { data: currentUserProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+    const { data: currentUserRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (profileError) {
-      console.error('Error fetching current user profile:', profileError);
+    if (roleError) {
+      console.error('Error fetching current user role:', roleError);
       return new Response(JSON.stringify({ error: 'Failed to verify permissions' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Current user profile:', currentUserProfile);
+    console.log('Current user role:', currentUserRole);
 
     const isUpdatingOwnPassword = user.id === userId;
-    const isSuperAdmin = currentUserProfile.role === 'super_admin';
+    const isSuperAdmin = currentUserRole.role === 'super_admin';
     const canUpdatePassword = isUpdatingOwnPassword || isSuperAdmin;
 
     if (!canUpdatePassword) {
