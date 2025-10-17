@@ -5,7 +5,8 @@ import { useGameAssignments } from '@/hooks/useGameAssignments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Copy, ExternalLink, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -25,6 +26,17 @@ export const MyPublicPage = () => {
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [isInEditor, setIsInEditor] = useState(false);
+
+  useEffect(() => {
+    // Detect if we're in the editor iframe
+    try {
+      setIsInEditor(window.self !== window.top && window.location.host.includes('lovable'));
+    } catch (e) {
+      // Cross-origin iframe access blocked
+      setIsInEditor(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -115,7 +127,9 @@ export const MyPublicPage = () => {
 
   const visitPage = () => {
     if (profile?.public_username) {
-      window.open(`/u/${profile.public_username}`, '_blank');
+      const absoluteUrl = `${window.location.origin}/u/${profile.public_username}`;
+      window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+      toast.info('Tip: If you see a login prompt, try opening in an incognito/private window');
     }
   };
 
@@ -144,6 +158,15 @@ export const MyPublicPage = () => {
 
   return (
     <div className="space-y-6">
+      {isInEditor && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            You're viewing this in the Editor preview. Public visitors won't see a login prompt. 
+            Use "Open Public Page" to verify the actual public experience.
+          </AlertDescription>
+        </Alert>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Your Public Results Page</CardTitle>
@@ -187,17 +210,14 @@ export const MyPublicPage = () => {
                 <p className="text-xs text-muted-foreground">
                   Full URL: <span className="font-mono">{fullUrl}</span>
                 </p>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button onClick={visitPage} className="gap-2">
-                  <ExternalLink className="h-4 w-4" />
-                  Visit My Page
-                </Button>
-                <Button onClick={copyUrl} variant="outline" className="gap-2">
-                  <Copy className="h-4 w-4" />
-                  Copy Link
-                </Button>
+                
+                <Alert className="bg-muted/50">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    <strong>Public link tips:</strong> This page is accessible to anyone without login. 
+                    If you see a Lovable login when testing, open the link in an incognito/private window to verify the public view.
+                  </AlertDescription>
+                </Alert>
               </div>
             </>
           ) : (
