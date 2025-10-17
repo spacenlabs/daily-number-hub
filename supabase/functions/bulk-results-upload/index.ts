@@ -7,8 +7,9 @@ const corsHeaders = {
 
 interface ResultUpdate {
   game_id: string;
-  date: string;
+  result_date: string;
   result: number;
+  mode: 'auto' | 'manual';
 }
 
 Deno.serve(async (req) => {
@@ -42,55 +43,58 @@ Deno.serve(async (req) => {
     }
 
     // Check if user has permission to manage results
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: userRole } = await supabase
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (!profile || !['super_admin', 'admin', 'game_manager', 'result_operator'].includes(profile.role)) {
+    if (!userRole || !['super_admin', 'admin', 'game_manager', 'result_operator'].includes(userRole.role)) {
+      console.error('Permission denied for user:', user.id, 'with role:', userRole?.role);
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { updates } = await req.json() as { updates: ResultUpdate[] };
+    console.log('User authorized with role:', userRole.role);
 
-    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+    const { results } = await req.json() as { results: ResultUpdate[] };
+
+    if (!results || !Array.isArray(results) || results.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No updates provided' }),
+        JSON.stringify({ error: 'No results provided' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Processing ${updates.length} result updates`);
+    console.log(`Processing ${results.length} result updates`);
 
     // Process each update
     let successCount = 0;
     const errors: string[] = [];
 
-    for (const update of updates) {
+    for (const update of results) {
       try {
         // Insert into game_results_history table with upsert
         const { error } = await supabase
           .from('game_results_history')
           .upsert({ 
             game_id: update.game_id,
-            result_date: update.date,
+            result_date: update.result_date,
             result: update.result,
-            mode: 'manual',
+            mode: update.mode || 'manual',
             published_at: new Date().toISOString()
           }, {
             onConflict: 'game_id,result_date'
           });
 
         if (error) {
-          errors.push(`Failed to insert result for game ${update.game_id} on ${update.date}: ${error.message}`);
+          errors.push(`Failed to insert result for game ${update.game_id} on ${update.result_date}: ${error.message}`);
           console.error('Insert error:', error);
         } else {
           successCount++;
-          console.log(`Inserted result for game ${update.game_id} on ${update.date}: ${update.result}`);
+          console.log(`Inserted result for game ${update.game_id} on ${update.result_date}: ${update.result}`);
         }
       } catch (error) {
         errors.push(`Error processing game ${update.game_id}: ${error.message}`);
@@ -106,8 +110,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        processed: updates.length,
-        successful: successCount,
+        success_count: successCount,
+        processed: results.length,
         errors: errors.length > 0 ? errors : undefined
       }),
       { 
