@@ -159,11 +159,11 @@ export const MyPublicPage = () => {
   return (
     <div className="space-y-6">
       {isInEditor && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            You're viewing this in the Editor preview. Public visitors won't see a login prompt. 
-            Use "Open Public Page" to verify the actual public experience.
+        <Alert className="border-blue-500/50 bg-blue-500/10">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm">
+            <strong>Editor Preview:</strong> You're in the editor. Public visitors won't see any login. 
+            Click <strong>"Publish"</strong> in the top right to get your live public URL.
           </AlertDescription>
         </Alert>
       )}
@@ -182,40 +182,27 @@ export const MyPublicPage = () => {
             </div>
           ) : shortUrl ? (
             <>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Share this short URL:</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 rounded-lg border bg-card px-4 py-4">
-                      <span className="text-muted-foreground text-sm mr-1">/u/</span>
-                      <span className="font-mono font-bold text-2xl text-primary">{profile.public_username}</span>
-                    </div>
-                    <Button onClick={copyUrl} variant="outline" size="icon" title="Copy full URL">
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg bg-primary/5">
+                  <p className="text-sm font-medium mb-3">Your Public URL (Anyone can view - no login required)</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <code className="flex-1 p-3 bg-background border rounded text-sm break-all font-mono">
+                      {fullUrl}
+                    </code>
+                    <Button onClick={copyUrl} variant="outline" size="icon" title="Copy URL">
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button onClick={visitPage} className="gap-2">
+                  <Button onClick={visitPage} className="w-full gap-2">
                     <ExternalLink className="h-4 w-4" />
                     Open Public Page
                   </Button>
-                  <Button onClick={copyUrl} variant="secondary" className="gap-2">
-                    <Copy className="h-4 w-4" />
-                    Copy Full URL
-                  </Button>
                 </div>
                 
-                <p className="text-xs text-muted-foreground">
-                  Full URL: <span className="font-mono">{fullUrl}</span>
-                </p>
-                
-                <Alert className="bg-muted/50">
+                <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    <strong>Public link tips:</strong> This page is accessible to anyone without login. 
-                    If you see a Lovable login when testing, open the link in an incognito/private window to verify the public view.
+                    After you publish your site, anyone can view this page without logging in. Share this URL with your audience!
                   </AlertDescription>
                 </Alert>
               </div>
