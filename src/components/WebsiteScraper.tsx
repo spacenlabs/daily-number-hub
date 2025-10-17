@@ -11,6 +11,7 @@ interface ScrapedResult {
   game_name: string;
   result: number;
   date: string;
+  scheduled_time?: string;
 }
 
 export const WebsiteScraper = () => {
@@ -70,18 +71,44 @@ export const WebsiteScraper = () => {
 
       if (gamesError) throw gamesError;
 
-      // Map scraped results to game IDs
-      const resultsToUpload = scrapedResults
-        .map((result) => {
-          const game = games?.find(
+      let createdGamesCount = 0;
+
+      // Map scraped results to game IDs, create games if they don't exist
+      const resultsToUpload = await Promise.all(
+        scrapedResults.map(async (result) => {
+          let game = games?.find(
             (g) => 
               g.name.toLowerCase() === result.game_name.toLowerCase() ||
               g.short_code.toLowerCase() === result.game_name.toLowerCase()
           );
 
+          // If game doesn't exist, create it
           if (!game) {
-            console.warn(`Game not found: ${result.game_name}`);
-            return null;
+            console.log(`Creating new game: ${result.game_name}`);
+            
+            const shortCode = result.game_name
+              .substring(0, 3)
+              .toUpperCase()
+              .replace(/\s/g, '');
+
+            const { data: newGame, error: createError } = await supabase
+              .from('games')
+              .insert({
+                name: result.game_name,
+                short_code: shortCode,
+                scheduled_time: result.scheduled_time || '12:00 PM',
+                enabled: true,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error(`Failed to create game ${result.game_name}:`, createError);
+              return null;
+            }
+
+            game = newGame;
+            createdGamesCount++;
           }
 
           return {
@@ -91,10 +118,12 @@ export const WebsiteScraper = () => {
             mode: 'auto' as const,
           };
         })
-        .filter((r) => r !== null);
+      );
 
-      if (resultsToUpload.length === 0) {
-        toast.error('No matching games found in your database');
+      const validResults = resultsToUpload.filter((r) => r !== null);
+
+      if (validResults.length === 0) {
+        toast.error('Failed to process results');
         return;
       }
 
@@ -107,7 +136,7 @@ export const WebsiteScraper = () => {
 
       // Call the bulk upload edge function
       const { data, error } = await supabase.functions.invoke('bulk-results-upload', {
-        body: { results: resultsToUpload },
+        body: { results: validResults },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -115,7 +144,11 @@ export const WebsiteScraper = () => {
 
       if (error) throw error;
 
-      toast.success(`Successfully imported ${data.success_count} results`);
+      const message = createdGamesCount > 0 
+        ? `Created ${createdGamesCount} new games and imported ${data.success_count} results`
+        : `Successfully imported ${data.success_count} results`;
+      
+      toast.success(message);
       setScrapedResults([]);
     } catch (error) {
       console.error('Import error:', error);
@@ -189,7 +222,14 @@ export const WebsiteScraper = () => {
                   key={idx}
                   className="text-sm flex justify-between items-center py-1 px-2 hover:bg-accent rounded"
                 >
-                  <span className="font-medium">{result.game_name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{result.game_name}</span>
+                    {result.scheduled_time && (
+                      <span className="text-xs text-muted-foreground">
+                        Time: {result.scheduled_time}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-muted-foreground">
                     {result.result} ({result.date})
                   </span>

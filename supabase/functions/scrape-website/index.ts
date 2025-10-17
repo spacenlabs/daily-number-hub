@@ -11,6 +11,7 @@ interface ScrapedResult {
   game_name: string;
   result: number;
   date: string;
+  scheduled_time?: string;
 }
 
 serve(async (req) => {
@@ -90,7 +91,17 @@ serve(async (req) => {
     // Process full width boards
     fullBoards.forEach((board) => {
       const gameName = board.querySelector('.gbfullgamename')?.textContent?.trim();
+      const timeElement = board.querySelector('font')?.textContent?.trim();
       const resultElements = board.querySelectorAll('.gbfullresult');
+      
+      // Extract time from format like "( 04:00 AM )"
+      let scheduledTime = '';
+      if (timeElement) {
+        const timeMatch = timeElement.match(/\(\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*\)/i);
+        if (timeMatch && timeMatch[1]) {
+          scheduledTime = timeMatch[1].trim();
+        }
+      }
       
       if (gameName && resultElements.length > 1) {
         const resultText = resultElements[resultElements.length - 1]?.textContent?.trim();
@@ -100,7 +111,8 @@ serve(async (req) => {
             results.push({
               game_name: gameName,
               result: parseInt(match[1]),
-              date: today
+              date: today,
+              scheduled_time: scheduledTime
             });
           }
         }
@@ -110,7 +122,17 @@ serve(async (req) => {
     // Process half width boards
     halfBoards.forEach((board) => {
       const gameName = board.querySelector('.gbgamehalf')?.textContent?.trim();
+      const timeElement = board.querySelector('.gbhalftime')?.textContent?.trim();
       const resultText = board.querySelector('.gbhalfresultn')?.textContent?.trim();
+      
+      // Extract time from format like "( 05:10 AM )"
+      let scheduledTime = '';
+      if (timeElement) {
+        const timeMatch = timeElement.match(/\(\s*(\d{1,2}:\d{2}\s*(?:AM|PM))\s*\)/i);
+        if (timeMatch && timeMatch[1]) {
+          scheduledTime = timeMatch[1].trim();
+        }
+      }
       
       if (gameName && resultText) {
         const match = resultText.match(/\[\s*(\d+)\s*\]/);
@@ -118,7 +140,8 @@ serve(async (req) => {
           results.push({
             game_name: gameName,
             result: parseInt(match[1]),
-            date: today
+            date: today,
+            scheduled_time: scheduledTime
           });
         }
       }
