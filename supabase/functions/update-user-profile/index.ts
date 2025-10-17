@@ -57,23 +57,23 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Request body parsed for user:', userId);
 
     // Check if user has permission to update this profile
-    const { data: currentUserProfile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+    const { data: currentUserRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (profileError) {
-      console.error('Error fetching current user profile:', profileError);
+    if (roleError) {
+      console.error('Error fetching current user role:', roleError);
       return new Response(JSON.stringify({ error: 'Failed to verify permissions' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Current user profile:', currentUserProfile);
+    console.log('Current user role:', currentUserRole);
 
-    const canUpdateProfile = user.id === userId || currentUserProfile.role === 'super_admin';
+    const canUpdateProfile = user.id === userId || currentUserRole.role === 'super_admin' || currentUserRole.role === 'admin';
     if (!canUpdateProfile) {
       console.error('Permission denied for user:', user.id, 'updating:', userId);
       return new Response(JSON.stringify({ error: 'Permission denied' }), {
