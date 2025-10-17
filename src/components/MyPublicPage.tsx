@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Copy, ExternalLink, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
+const PUBLIC_DOMAIN = 'https://satta-game.online';
+
 interface UserProfile {
   id: string;
   user_id: string;
@@ -119,7 +121,7 @@ export const MyPublicPage = () => {
 
   const copyUrl = () => {
     if (profile?.public_username) {
-      const url = `${window.location.origin}/u/${profile.public_username}`;
+      const url = `${PUBLIC_DOMAIN}/u/${profile.public_username}`;
       navigator.clipboard.writeText(url);
       toast.success('Full URL copied to clipboard!');
     }
@@ -127,9 +129,9 @@ export const MyPublicPage = () => {
 
   const visitPage = () => {
     if (profile?.public_username) {
-      const absoluteUrl = `${window.location.origin}/u/${profile.public_username}`;
+      const absoluteUrl = `${PUBLIC_DOMAIN}/u/${profile.public_username}`;
       window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
-      toast.info('Tip: If you see a login prompt, try opening in an incognito/private window');
+      toast.info('Opening your public page at satta-game.online');
     }
   };
 
@@ -153,7 +155,7 @@ export const MyPublicPage = () => {
 
   const shortUrl = profile.public_username ? `/u/${profile.public_username}` : null;
   const fullUrl = profile.public_username 
-    ? `${window.location.origin}/u/${profile.public_username}`
+    ? `${PUBLIC_DOMAIN}/u/${profile.public_username}`
     : null;
 
   return (
