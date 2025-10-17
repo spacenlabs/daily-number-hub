@@ -10,9 +10,10 @@ import { UserManagement } from "@/components/UserManagement";
 import { BulkResultsUpload } from "@/components/BulkResultsUpload";
 import { WebsiteScraper } from "@/components/WebsiteScraper";
 import GameAssignmentManager from "@/components/GameAssignmentManager";
+import { MyPublicPage } from "@/components/MyPublicPage";
 import { ROLE_LABELS } from "@/types/permissions";
 import { supabase } from "@/integrations/supabase/client";
-import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle, Undo2 } from "lucide-react";
+import { Home, Settings, Users, BarChart3, Plus, Edit, Trash2, LogOut, Clock, Shield, Eye, GamepadIcon, FileText, Calendar, Smartphone, AlertTriangle, Undo2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -125,17 +126,13 @@ const AdminDashboard = () => {
   // Set default tab only on initial load based on permissions
   useEffect(() => {
     const getDefaultTab = () => {
-      if (canViewAnalytics) return 'overview';
-      if (canManageResults) return 'results';
-      if (canManageGames) return 'games';
-      if (canManageContent) return 'website';
-      if (canManageUsers) return 'users';
-      return 'overview';
+      // Default to 'my-page' for all users
+      return 'my-page';
     };
 
     // Only set default tab if current tab is not available to user or on first load
     const defaultTab = getDefaultTab();
-    const availableTabs = [...(canViewAnalytics ? ['overview'] : []), ...(canManageUsers ? ['users'] : []), ...(canManageGames ? ['games'] : []), ...(canManageResults ? ['results'] : []), ...(canManageContent ? ['website'] : [])];
+    const availableTabs = ['my-page', ...(canViewAnalytics ? ['overview'] : []), ...(canManageUsers ? ['users'] : []), ...(canManageGames ? ['assignments', 'games'] : []), ...(canManageResults ? ['results'] : []), ...(canManageContent ? ['website'] : [])];
     if (!availableTabs.includes(activeTab)) {
       setActiveTab(defaultTab);
     }
@@ -407,7 +404,11 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : canManageContent ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'} gap-0.5 sm:gap-1 h-auto p-1`}>
+          <TabsList className={`grid w-full ${canManageUsers ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7' : canManageContent ? 'grid-cols-2 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-5'} gap-0.5 sm:gap-1 h-auto p-1`}>
+            <TabsTrigger value="my-page" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
+              <Globe className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">My Page</span>
+            </TabsTrigger>
             {canViewAnalytics && <TabsTrigger value="overview" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 min-h-[32px] sm:min-h-[36px]">
                 <BarChart3 className="mr-0.5 sm:mr-1 md:mr-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
                 <span className="hidden sm:inline">Overview</span>
@@ -435,6 +436,11 @@ const AdminDashboard = () => {
                 <span className="sm:hidden truncate">Site</span>
               </TabsTrigger>}
           </TabsList>
+
+          {/* My Page Tab - Visible to ALL users */}
+          <TabsContent value="my-page" className="space-y-6">
+            <MyPublicPage />
+          </TabsContent>
 
           {canViewAnalytics && <TabsContent value="overview" className="space-y-6">
               {/* Stats Cards */}
