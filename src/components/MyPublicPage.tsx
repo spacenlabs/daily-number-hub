@@ -159,17 +159,21 @@ export const MyPublicPage = () => {
             </div>
           ) : shortUrl ? (
             <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Your Short URL:</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 rounded-lg border bg-muted/50 px-4 py-3 font-mono text-lg font-bold">
-                    {shortUrl}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Your short URL</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 rounded-lg border bg-card px-4 py-4">
+                      <span className="text-muted-foreground text-sm mr-1">/u/</span>
+                      <span className="font-mono font-bold text-xl text-foreground">{profile.public_username}</span>
+                    </div>
+                    <Button onClick={copyUrl} variant="outline" size="icon" title="Copy full URL">
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button onClick={copyUrl} variant="outline" size="icon">
-                    <Copy className="h-4 w-4" />
-                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                
+                <p className="text-xs text-muted-foreground font-mono">
                   Full URL: {fullUrl}
                 </p>
               </div>
