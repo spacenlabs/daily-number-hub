@@ -7,6 +7,19 @@ const TopResultsHeader = () => {
   const { games, loading } = useGames();
   const currentDateTime = format(new Date(), 'dd MMMM yyyy h:mm aa');
 
+  // Helper function to convert time to minutes for sorting
+  const convertTo24 = (time: string) => {
+    if (time.includes('AM') || time.includes('PM')) {
+      const timePart = time.replace(/(AM|PM)/i, '').trim();
+      const [hours, minutes] = timePart.split(':').map(Number);
+      const isPM = time.toUpperCase().includes('PM');
+      const hour24 = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+      return hour24 * 60 + minutes;
+    }
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
   if (loading) {
     return (
       <div className="w-full bg-background py-8 text-center">
@@ -29,13 +42,14 @@ const TopResultsHeader = () => {
   // Separate games into published with results and waiting games
   const publishedGames = games
     .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
   
   const waitingGames = games
     .filter(game => {
       const displayStatus = getDisplayStatus(game);
       return displayStatus && displayStatus.type === 'wait';
-    });
+    })
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   // Display logic: 1 recent published result + 1 waiting game if available
   let displayedGames = [];

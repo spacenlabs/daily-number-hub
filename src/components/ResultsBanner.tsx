@@ -7,17 +7,32 @@ interface ResultsBannerProps {
 }
 
 export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
-  const waitGames = games.filter((game) => {
-    const hasNoResult = game.today_result === null || game.today_result === undefined;
-    const isPending = game.status === 'pending';
-    const upcoming = isGameUpcoming(game.scheduled_time);
-    const overdue = isGameOverdue(game.scheduled_time);
-    return hasNoResult && (isPending || upcoming || overdue);
-  });
+  // Helper function to convert time to minutes for sorting
+  const convertTo24 = (time: string) => {
+    if (time.includes('AM') || time.includes('PM')) {
+      const timePart = time.replace(/(AM|PM)/i, '').trim();
+      const [hours, minutes] = timePart.split(':').map(Number);
+      const isPM = time.toUpperCase().includes('PM');
+      const hour24 = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+      return hour24 * 60 + minutes;
+    }
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const waitGames = games
+    .filter((game) => {
+      const hasNoResult = game.today_result === null || game.today_result === undefined;
+      const isPending = game.status === 'pending';
+      const upcoming = isGameUpcoming(game.scheduled_time);
+      const overdue = isGameOverdue(game.scheduled_time);
+      return hasNoResult && (isPending || upcoming || overdue);
+    })
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   const publishedGames = games
     .filter((game) => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   return (
     <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border-y border-border">

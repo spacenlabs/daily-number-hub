@@ -125,18 +125,35 @@ const UserPublicPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
-            {games.map((game) => (
-              <GameCard 
-                key={game.id} 
-                id={game.id}
-                name={game.name}
-                shortCode={game.short_code}
-                scheduledTime={game.scheduled_time}
-                todayResult={game.today_result ?? undefined}
-                yesterdayResult={game.yesterday_result ?? undefined}
-                status={game.status as "published" | "pending" | "manual"}
-              />
-            ))}
+            {games
+              .sort((a, b) => {
+                // Convert to 24-hour for comparison
+                const convertTo24 = (time: string) => {
+                  if (time.includes('AM') || time.includes('PM')) {
+                    const timePart = time.replace(/(AM|PM)/i, '').trim();
+                    const [hours, minutes] = timePart.split(':').map(Number);
+                    const isPM = time.toUpperCase().includes('PM');
+                    const hour24 = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+                    return hour24 * 60 + minutes;
+                  }
+                  const [hours, minutes] = time.split(':').map(Number);
+                  return hours * 60 + minutes;
+                };
+                
+                return convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time);
+              })
+              .map((game) => (
+                <GameCard 
+                  key={game.id} 
+                  id={game.id}
+                  name={game.name}
+                  shortCode={game.short_code}
+                  scheduledTime={game.scheduled_time}
+                  todayResult={game.today_result ?? undefined}
+                  yesterdayResult={game.yesterday_result ?? undefined}
+                  status={game.status as "published" | "pending" | "manual"}
+                />
+              ))}
           </div>
         )}
 

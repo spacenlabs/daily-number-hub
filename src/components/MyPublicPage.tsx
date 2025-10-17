@@ -248,19 +248,36 @@ export const MyPublicPage = () => {
             <p className="text-muted-foreground">No games assigned yet</p>
           ) : (
             <div className="space-y-2">
-              {games.map((game: any) => (
-                <div key={game.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <p className="font-medium">{game.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Today: {game.today_result ?? '---'} | Yesterday: {game.yesterday_result ?? '---'}
-                    </p>
+              {games
+                .sort((a, b) => {
+                  // Convert to 24-hour for comparison
+                  const convertTo24 = (time: string) => {
+                    if (time.includes('AM') || time.includes('PM')) {
+                      const timePart = time.replace(/(AM|PM)/i, '').trim();
+                      const [hours, minutes] = timePart.split(':').map(Number);
+                      const isPM = time.toUpperCase().includes('PM');
+                      const hour24 = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+                      return hour24 * 60 + minutes;
+                    }
+                    const [hours, minutes] = time.split(':').map(Number);
+                    return hours * 60 + minutes;
+                  };
+                  
+                  return convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time);
+                })
+                .map((game: any) => (
+                  <div key={game.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                    <div>
+                      <p className="font-medium">{game.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Today: {game.today_result ?? '---'} | Yesterday: {game.yesterday_result ?? '---'}
+                      </p>
+                    </div>
+                    <Badge variant={game.status === 'published' ? 'default' : 'secondary'}>
+                      {game.status}
+                    </Badge>
                   </div>
-                  <Badge variant={game.status === 'published' ? 'default' : 'secondary'}>
-                    {game.status}
-                  </Badge>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </CardContent>
