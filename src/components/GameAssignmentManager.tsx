@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { ExternalLink, Trash2, Copy, CheckCircle } from 'lucide-react';
+import { ExternalLink, Trash2, Copy, CheckCircle, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface UserProfile {
@@ -278,12 +278,21 @@ const GameAssignmentManager = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => copyPublicUrl(user.public_username!, user.user_id)}
+                        title="Copy URL"
                       >
                         {copiedUserId === user.user_id ? (
                           <CheckCircle className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleGenerateUsername(user.user_id, user.email)}
+                        title="Regenerate username"
+                      >
+                        <RefreshCw className="h-4 w-4" />
                       </Button>
                       <a
                         href={`${PUBLIC_DOMAIN}/u/${user.public_username}`}
