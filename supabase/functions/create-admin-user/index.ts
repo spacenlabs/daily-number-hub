@@ -34,13 +34,13 @@ serve(async (req) => {
     }
 
     // Check if user is super admin
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+    const { data: userRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single()
 
-    if (profileError || !profile || profile.role !== 'super_admin') {
+    if (roleError || !userRole || userRole.role !== 'super_admin') {
       throw new Error('Insufficient permissions - Super Admin required')
     }
 
@@ -90,20 +90,20 @@ serve(async (req) => {
       throw new Error('User creation failed - no user returned')
     }
 
-    // Update the user's profile with the specified role
-    const { error: profileUpdateError } = await supabaseAdmin
-      .from('profiles')
-      .update({ 
+    // Set the user's role in user_roles table (will also trigger permissions assignment via trigger)
+    const { error: roleInsertError } = await supabaseAdmin
+      .from('user_roles')
+      .insert({ 
+        user_id: newUser.user.id,
         role: role,
-        email: email 
+        assigned_by: user.id
       })
-      .eq('user_id', newUser.user.id)
 
-    if (profileUpdateError) {
-      console.error('Profile update error:', profileUpdateError)
-      // Try to clean up the created user if profile update fails
+    if (roleInsertError) {
+      console.error('Role insert error:', roleInsertError)
+      // Try to clean up the created user if role insert fails
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
-      throw new Error(`Failed to set user role: ${profileUpdateError.message}`)
+      throw new Error(`Failed to set user role: ${roleInsertError.message}`)
     }
 
     return new Response(
