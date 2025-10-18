@@ -55,15 +55,18 @@ const TopResultsHeader = () => {
   let displayedGames = [];
   
   if (waitingGames.length > 0) {
-    // Show 1 most recent published game + ALL waiting games
+    // Show 1 most recent published game (by scheduled time) + ALL waiting games
     if (publishedGames.length > 0) {
-      displayedGames.push(publishedGames[0]);
+      displayedGames.push(publishedGames[publishedGames.length - 1]);
     }
     displayedGames.push(...waitingGames);
   } else {
-    // No waiting games, take 2 most recent published games
-    displayedGames = publishedGames.slice(0, 2);
+    // No waiting games, take 2 most recent published games (by scheduled time)
+    displayedGames = publishedGames.slice(-2);
   }
+  
+  // Sort final display by scheduled time to maintain order
+  displayedGames.sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   return (
     <div className="w-full bg-background py-8 px-4">
