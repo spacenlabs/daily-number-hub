@@ -39,36 +39,18 @@ const TopResultsHeader = () => {
     );
   }
 
-  // Separate games into published with results and waiting games (exclude NCR)
-  const publishedGames = games
-    .filter(game => game.name !== 'N C R' && game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-    .sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
-  
-  const waitingGames = games
-    .filter(game => {
-      if (game.name === 'N C R') return false;
-      const displayStatus = getDisplayStatus(game);
-      return displayStatus && displayStatus.type === 'wait';
-    })
+  // Filter out NCR and get games with results, sorted by scheduled time
+  const gamesWithResults = games
+    .filter(game => 
+      game.name !== 'N C R' && 
+      game.status === 'published' && 
+      game.today_result !== null && 
+      game.today_result !== undefined
+    )
     .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
-
-  // Display logic: Show all overdue/wait games, plus most recent published result
-  let displayedGames = [];
   
-  if (waitingGames.length > 0) {
-    // Show 1 most recent published game (by update time) + ALL waiting games
-    if (publishedGames.length > 0) {
-      displayedGames.push(publishedGames[publishedGames.length - 1]);
-    }
-    displayedGames.push(...waitingGames);
-  } else {
-    // No waiting games, take 2 most recent published games (by update time)
-    displayedGames = publishedGames.slice(-2);
-  }
-  
-  // Sort final display by scheduled time to maintain order and limit to 8 results
-  displayedGames.sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
-  displayedGames = displayedGames.slice(0, 8);
+  // Take up to 8 most recent games with results
+  const displayedGames = gamesWithResults.slice(-8);
 
   return (
     <div className="w-full bg-background py-8 px-4">
