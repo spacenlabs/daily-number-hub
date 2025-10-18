@@ -39,18 +39,29 @@ const TopResultsHeader = () => {
     );
   }
 
-  // Filter out NCR and get games with results, sorted by scheduled time
-  const gamesWithResults = games
+  // Separate games into published with results and waiting/overdue games (exclude NCR)
+  const publishedGames = games
     .filter(game => 
       game.name !== 'N C R' && 
       game.status === 'published' && 
       game.today_result !== null && 
       game.today_result !== undefined
     )
-    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 4); // Take 4 most recent published results
   
-  // Take up to 8 most recent games with results
-  const displayedGames = gamesWithResults.slice(-8);
+  const overdueGames = games
+    .filter(game => {
+      if (game.name === 'N C R') return false;
+      const displayStatus = getDisplayStatus(game);
+      return displayStatus && displayStatus.type === 'wait';
+    })
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time))
+    .slice(0, 4); // Take 4 overdue games
+  
+  // Combine and sort by scheduled time for display
+  const displayedGames = [...publishedGames, ...overdueGames]
+    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   return (
     <div className="w-full bg-background py-8 px-4">
