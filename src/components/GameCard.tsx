@@ -56,8 +56,8 @@ const GameCard = ({
           <div className="space-y-1.5 sm:space-y-2">
             {/* Header */}
             <div>
-              <h3 className="font-bold text-xs sm:text-sm bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent truncate leading-tight">{name}</h3>
-              <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <h3 className="font-bold text-base bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent truncate leading-tight">{name}</h3>
+              <p className="text-base text-muted-foreground flex items-center gap-1 mt-0.5">
                 <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary flex-shrink-0" />
                 <span className="truncate">{formatTo12Hour(scheduledTime)}</span>
               </p>
@@ -67,32 +67,32 @@ const GameCard = ({
             <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
               {/* Yesterday's Result */}
               <div className="text-center">
-                <div className="text-[10px] sm:text-xs font-medium text-accent mb-0.5 sm:mb-1">
+                <div className="text-base font-medium text-accent mb-0.5 sm:mb-1">
                   Yesterday
                 </div>
                 <div className="bg-accent/10 border border-accent/30 rounded-md sm:rounded-lg py-1.5 sm:py-2 px-1 min-h-[35px] sm:min-h-[45px] flex items-center justify-center">
                   {yesterdayResult !== undefined && yesterdayResult !== null ? (
-                    <span className="text-sm sm:text-lg font-bold text-accent">
+                    <span className="text-base font-bold text-accent">
                       {yesterdayResult.toString().padStart(2, '0')}
                     </span>
                   ) : (
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">--</span>
+                    <span className="text-base text-muted-foreground">--</span>
                   )}
                 </div>
               </div>
 
               {/* Today's Result */}
               <div className="text-center">
-                <div className="text-[10px] sm:text-xs font-medium text-primary mb-0.5 sm:mb-1">
+                <div className="text-base font-medium text-primary mb-0.5 sm:mb-1">
                   Today
                 </div>
                 <div className="bg-primary/10 border border-primary/40 rounded-md sm:rounded-lg py-1.5 sm:py-2 px-1 min-h-[35px] sm:min-h-[45px] flex items-center justify-center">
                   {todayResult !== undefined && todayResult !== null ? (
-                    <span className="text-sm sm:text-lg font-bold text-primary">
+                    <span className="text-base font-bold text-primary">
                       {todayResult.toString().padStart(2, '0')}
                     </span>
                   ) : (
-                    <span className="text-[10px] sm:text-xs font-medium text-primary/70">
+                    <span className="text-base font-medium text-primary/70">
                       {isGameOverdue(scheduledTime) ? "WAIT" : "--"}
                     </span>
                   )}

@@ -34,11 +34,11 @@ const Index = () => {
         <div className="container mx-auto px-2 sm:px-4">
           
           <div className="text-center mb-6 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 md:mb-4 leading-tight">
+            <h2 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 md:mb-4 leading-tight">
               * SATTA KING *<br className="sm:hidden" />
               <span className="sm:hidden"> </span>*LIVE RESULTS *
             </h2>
-            <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
+            <p className="text-base text-muted-foreground max-w-2xl mx-auto px-2">
               🎯 Tap any game card to view complete history and export data
             </p>
           </div>
@@ -102,7 +102,7 @@ const Index = () => {
       <ConfigurableSection sectionType="footer" pagePath="/">
         <footer className="bg-background/80 border-t border-neon-cyan/20 py-8">
           <div className="container mx-auto px-4">
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-base text-muted-foreground">
               {footerContent.text || "© 2025 Lottery Results System. All rights reserved. • Results for informational purposes only."}
             </div>
           </div>

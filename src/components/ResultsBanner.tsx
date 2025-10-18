@@ -40,14 +40,14 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
         {/* Published Results */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm sm:text-base font-semibold text-foreground">Live Results Today</h3>
-            <span className="text-xs text-muted-foreground">{publishedGames.length} published</span>
+            <h3 className="text-base font-semibold text-foreground">Live Results Today</h3>
+            <span className="text-base text-muted-foreground">{publishedGames.length} published</span>
           </div>
 
           {publishedGames.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {publishedGames.slice(0, 20).map((g) => (
-                <div key={g.id} className="px-2 py-1 rounded-md border border-primary/30 bg-primary/10 text-primary text-xs sm:text-sm font-semibold">
+                <div key={g.id} className="px-2 py-1 rounded-md border border-primary/30 bg-primary/10 text-primary text-base font-semibold">
                   <span className="">{g.name}</span>
                   <span className="mx-1.5">•</span>
                   <span>{String(g.today_result).padStart(2, '0')}</span>
@@ -55,16 +55,16 @@ export const ResultsBanner: React.FC<ResultsBannerProps> = ({ games }) => {
               ))}
             </div>
           ) : (
-            <div className="text-xs sm:text-sm text-muted-foreground">No results published yet.</div>
+            <div className="text-base text-muted-foreground">No results published yet.</div>
           )}
 
           {/* Waiting Games */}
           {waitGames.length > 0 && (
             <div className="mt-2">
-              <div className="text-xs text-muted-foreground mb-1">Waiting ({waitGames.length})</div>
+              <div className="text-base text-muted-foreground mb-1">Waiting ({waitGames.length})</div>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {waitGames.slice(0, 30).map((g) => (
-                  <div key={g.id} className="px-2 py-1 rounded-md border border-border bg-card/50 text-xs sm:text-sm">
+                  <div key={g.id} className="px-2 py-1 rounded-md border border-border bg-card/50 text-base">
                     <span className="text-foreground/90">{g.name}</span>
                     <span className="mx-1.5 text-muted-foreground">•</span>
                     <span className="text-warning">WAIT</span>
