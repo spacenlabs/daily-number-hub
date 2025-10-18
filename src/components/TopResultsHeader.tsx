@@ -82,7 +82,7 @@ const TopResultsHeader = () => {
         </h2>
 
         {/* Games Results */}
-        <div className="space-y-8 mt-12">
+        <div className="grid grid-cols-2 gap-8 mt-12">
           {displayedGames.map((game, index) => {
             const displayStatus = getDisplayStatus(game);
             
