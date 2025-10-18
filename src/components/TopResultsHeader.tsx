@@ -42,7 +42,7 @@ const TopResultsHeader = () => {
   // Separate games into published with results and waiting games
   const publishedGames = games
     .filter(game => game.status === 'published' && game.today_result !== null && game.today_result !== undefined)
-    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
+    .sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
   
   const waitingGames = games
     .filter(game => {
@@ -55,13 +55,13 @@ const TopResultsHeader = () => {
   let displayedGames = [];
   
   if (waitingGames.length > 0) {
-    // Show 1 most recent published game (by scheduled time) + ALL waiting games
+    // Show 1 most recent published game (by update time) + ALL waiting games
     if (publishedGames.length > 0) {
       displayedGames.push(publishedGames[publishedGames.length - 1]);
     }
     displayedGames.push(...waitingGames);
   } else {
-    // No waiting games, take 2 most recent published games (by scheduled time)
+    // No waiting games, take 2 most recent published games (by update time)
     displayedGames = publishedGames.slice(-2);
   }
   
