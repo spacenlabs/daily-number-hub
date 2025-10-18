@@ -58,10 +58,6 @@ const TopResultsHeader = () => {
     })
     .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time))
     .slice(0, 4); // Take 4 overdue games
-  
-  // Combine and sort by scheduled time for display
-  const displayedGames = [...publishedGames, ...overdueGames]
-    .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
   return (
     <div className="w-full bg-background py-8 px-4">
@@ -76,34 +72,41 @@ const TopResultsHeader = () => {
           Satta King Live Result Today
         </h2>
 
-        {/* Games Results */}
+        {/* Games Results - Two Columns */}
         <div className="grid grid-cols-2 gap-8 mt-12">
-          {displayedGames.map((game, index) => {
-            const displayStatus = getDisplayStatus(game);
-            
-            // Don't render upcoming games (when displayStatus is null)
-            if (!displayStatus) return null;
-            
-            return (
+          {/* Column 1: Recent Results */}
+          <div className="space-y-6">
+            {publishedGames.map((game) => (
               <div key={game.id} className="space-y-2">
                 {/* Game Name */}
                 <div className="text-base font-bold text-destructive uppercase tracking-wider">
                   {game.name}
                 </div>
                 
-                {/* Result or WAIT */}
-                <div className={`text-base font-bold ${
-                  displayStatus.type === 'result' 
-                    ? 'text-success' 
-                    : 'text-warning'
-                }`}>
-                  {displayStatus.type === 'result' 
-                    ? String(displayStatus.value).padStart(2, '0')
-                    : displayStatus.value}
+                {/* Result */}
+                <div className="text-base font-bold text-success">
+                  {String(game.today_result).padStart(2, '0')}
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Column 2: WAIT Games */}
+          <div className="space-y-6">
+            {overdueGames.map((game) => (
+              <div key={game.id} className="space-y-2">
+                {/* Game Name */}
+                <div className="text-base font-bold text-destructive uppercase tracking-wider">
+                  {game.name}
+                </div>
+                
+                {/* WAIT */}
+                <div className="text-base font-bold text-warning">
+                  WAIT
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
