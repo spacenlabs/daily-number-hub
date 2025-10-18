@@ -3,24 +3,55 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 
 interface ScrapedResult {
   game_name: string;
   result: number | null;
   date: string;
   scheduled_time?: string;
+  selected?: boolean;
+  websiteUrl?: string;
 }
 
 export const WebsiteScraper = () => {
-  const [url, setUrl] = useState('https://satta-king-fixed-no.in/');
+  const [urls, setUrls] = useState<string[]>(['https://satta-king-fixed-no.in/']);
   const [loading, setLoading] = useState(false);
   const [scrapedResults, setScrapedResults] = useState<ScrapedResult[]>([]);
 
+  const addUrlField = () => {
+    setUrls([...urls, '']);
+  };
+
+  const removeUrlField = (index: number) => {
+    if (urls.length === 1) {
+      toast.error('At least one URL is required');
+      return;
+    }
+    const newUrls = urls.filter((_, i) => i !== index);
+    setUrls(newUrls);
+  };
+
+  const updateUrl = (index: number, value: string) => {
+    const newUrls = [...urls];
+    newUrls[index] = value;
+    setUrls(newUrls);
+  };
+
   const handleScrape = async () => {
+    const validUrls = urls.filter(url => url.trim() !== '');
+    
+    if (validUrls.length === 0) {
+      toast.error('Please enter at least one URL');
+      return;
+    }
+
     setLoading(true);
+    const allResults: ScrapedResult[] = [];
+
     try {
       // Get auth session
       const { data: { session } } = await supabase.auth.getSession();
@@ -29,36 +60,73 @@ export const WebsiteScraper = () => {
         return;
       }
 
-      // Call the edge function to scrape the website
-      const { data, error } = await supabase.functions.invoke('scrape-website', {
-        body: { url },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      // Scrape each website
+      for (const url of validUrls) {
+        try {
+          const { data, error } = await supabase.functions.invoke('scrape-website', {
+            body: { url },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
 
-      if (error) throw error;
+          if (error) {
+            console.error(`Error scraping ${url}:`, error);
+            toast.error(`Failed to scrape ${url}`);
+            continue;
+          }
 
-      const results = data?.results || [];
+          const results = data?.results || [];
+          // Add selected flag (default true) and website URL to each result
+          const resultsWithSelection = results.map((r: ScrapedResult) => ({
+            ...r,
+            selected: true,
+            websiteUrl: url
+          }));
+          
+          allResults.push(...resultsWithSelection);
+        } catch (error) {
+          console.error(`Error scraping ${url}:`, error);
+          toast.error(`Failed to scrape ${url}`);
+        }
+      }
 
-      if (results.length === 0) {
-        toast.error('No results found on the website');
+      if (allResults.length === 0) {
+        toast.error('No results found on any website');
         return;
       }
 
-      setScrapedResults(results);
-      toast.success(`Found ${results.length} results`);
+      setScrapedResults(allResults);
+      toast.success(`Found ${allResults.length} results from ${validUrls.length} website(s)`);
     } catch (error) {
       console.error('Scraping error:', error);
-      toast.error('Failed to scrape website. Please check the URL and try again.');
+      toast.error('Failed to scrape websites. Please check the URLs and try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const toggleResultSelection = (index: number) => {
+    const newResults = [...scrapedResults];
+    newResults[index].selected = !newResults[index].selected;
+    setScrapedResults(newResults);
+  };
+
+  const selectAllResults = () => {
+    const newResults = scrapedResults.map(r => ({ ...r, selected: true }));
+    setScrapedResults(newResults);
+  };
+
+  const deselectAllResults = () => {
+    const newResults = scrapedResults.map(r => ({ ...r, selected: false }));
+    setScrapedResults(newResults);
+  };
+
   const handleImport = async () => {
-    if (scrapedResults.length === 0) {
-      toast.error('No results to import. Please scrape first.');
+    const selectedResults = scrapedResults.filter(r => r.selected);
+    
+    if (selectedResults.length === 0) {
+      toast.error('No results selected. Please select at least one result to import.');
       return;
     }
 
@@ -73,9 +141,9 @@ export const WebsiteScraper = () => {
 
       let createdGamesCount = 0;
 
-      // Map scraped results to game IDs, create games if they don't exist
+      // Map selected results to game IDs, create games if they don't exist
       const resultsToUpload = await Promise.all(
-        scrapedResults.map(async (result) => {
+        selectedResults.map(async (result) => {
           let game = games?.find(
             (g) => 
               g.name.toLowerCase() === result.game_name.toLowerCase() ||
@@ -181,21 +249,49 @@ export const WebsiteScraper = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="url">Website URL</Label>
-          <Input
-            id="url"
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
-          />
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <Label>Website URLs</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addUrlField}
+              disabled={loading}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Website
+            </Button>
+          </div>
+          
+          {urls.map((url, index) => (
+            <div key={index} className="flex gap-2">
+              <Input
+                type="url"
+                value={url}
+                onChange={(e) => updateUrl(index, e.target.value)}
+                placeholder="https://example.com"
+                disabled={loading}
+              />
+              {urls.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeUrlField(index)}
+                  disabled={loading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="flex gap-2">
           <Button
             onClick={handleScrape}
-            disabled={loading || !url}
+            disabled={loading || urls.every(u => !u.trim())}
             className="flex-1"
           >
             {loading ? (
@@ -204,14 +300,14 @@ export const WebsiteScraper = () => {
                 Scraping...
               </>
             ) : (
-              'Scrape Website'
+              'Scrape Websites'
             )}
           </Button>
 
           {scrapedResults.length > 0 && (
             <Button
               onClick={handleImport}
-              disabled={loading}
+              disabled={loading || !scrapedResults.some(r => r.selected)}
               variant="default"
               className="flex-1"
             >
@@ -221,7 +317,7 @@ export const WebsiteScraper = () => {
                   Importing...
                 </>
               ) : (
-                `Import ${scrapedResults.length} Results`
+                `Import ${scrapedResults.filter(r => r.selected).length} Selected`
               )}
             </Button>
           )}
@@ -229,30 +325,62 @@ export const WebsiteScraper = () => {
 
         {scrapedResults.length > 0 && (
           <div className="mt-4 space-y-2">
-            <Label>Scraped Results Preview:</Label>
-            <div className="max-h-48 overflow-y-auto rounded border p-2 space-y-1">
+            <div className="flex justify-between items-center">
+              <Label>Scraped Results ({scrapedResults.filter(r => r.selected).length} selected):</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllResults}
+                >
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={deselectAllResults}
+                >
+                  Deselect All
+                </Button>
+              </div>
+            </div>
+            <div className="max-h-96 overflow-y-auto rounded border p-2 space-y-1">
               {scrapedResults.map((result, idx) => (
                 <div
                   key={idx}
-                  className="text-sm flex justify-between items-center py-1 px-2 hover:bg-accent rounded"
+                  className="text-sm flex items-start gap-3 py-2 px-2 hover:bg-accent rounded"
                 >
-                  <div className="flex flex-col">
-                    <span className="font-medium">{result.game_name}</span>
-                    <div className="flex gap-2 text-xs text-muted-foreground">
-                      {result.scheduled_time && (
-                        <span>Time: {result.scheduled_time}</span>
-                      )}
-                      {result.result !== null && (
-                        <span>Result: {result.result}</span>
-                      )}
-                      {result.result === null && (
-                        <span className="text-yellow-600">No result</span>
+                  <Checkbox
+                    checked={result.selected}
+                    onCheckedChange={() => toggleResultSelection(idx)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{result.game_name}</span>
+                      <div className="flex gap-2 text-xs text-muted-foreground">
+                        {result.scheduled_time && (
+                          <span>Time: {result.scheduled_time}</span>
+                        )}
+                        {result.result !== null && (
+                          <span>Result: {result.result}</span>
+                        )}
+                        {result.result === null && (
+                          <span className="text-yellow-600">No result</span>
+                        )}
+                      </div>
+                      {result.websiteUrl && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          Source: {result.websiteUrl}
+                        </span>
                       )}
                     </div>
+                    <span className="text-xs text-muted-foreground">
+                      {result.date}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {result.date}
-                  </span>
                 </div>
               ))}
             </div>
