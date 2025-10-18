@@ -51,15 +51,15 @@ const TopResultsHeader = () => {
     })
     .sort((a, b) => convertTo24(a.scheduled_time) - convertTo24(b.scheduled_time));
 
-  // Display logic: 1 recent published result + 1 waiting game if available
+  // Display logic: Show all overdue/wait games, plus most recent published result
   let displayedGames = [];
   
   if (waitingGames.length > 0) {
-    // Take 1 most recent published game + 1 waiting game
+    // Show 1 most recent published game + ALL waiting games
     if (publishedGames.length > 0) {
       displayedGames.push(publishedGames[0]);
     }
-    displayedGames.push(waitingGames[0]);
+    displayedGames.push(...waitingGames);
   } else {
     // No waiting games, take 2 most recent published games
     displayedGames = publishedGames.slice(0, 2);
